@@ -1,1 +1,320 @@
-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PECC | داشبورد العملاء</title>
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',Tahoma}
+body{margin:0;background:#f4f1e8;color:#222}
+header{background:#fff;padding:0;margin:0;text-align:center;overflow:hidden;line-height:0}
+.wrap{max-width:1080px;margin:auto;padding:14px}
+.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.07)}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:#fff;border-radius:14px;padding:16px;text-align:center}
+.stat span{font-size:13px;color:#777}.stat b{font-size:22px;color:#162e4d;display:block}
+label{display:block;margin:10px 0 5px;font-weight:bold}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.row{grid-template-columns:1fr}}
+button{border:0;border-radius:10px;padding:12px;font-weight:bold;cursor:pointer;font-size:14px}
+.green{background:#162e4d;color:#fff;width:100%;margin-top:12px}
+.gold{background:#e67e22;color:#fff}.red{background:#c0392b;color:#fff}
+.wa{background:#25D366;color:#fff}.gray{background:#eee}.blue{background:#2980b9;color:#fff}
+.topbar{display:flex;gap:8px;flex-wrap:wrap}.topbar button{flex:1}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
+.hidden{display:none}.supplier{border:1px solid #eee;border-radius:12px;padding:12px;margin-top:10px}
+.balance{font-size:28px;font-weight:900;color:#162e4d}
+.alert-box{background:#ffe8e8;border:2px solid #e74c3c;border-radius:14px;padding:14px;margin-bottom:14px}
+.steps{display:flex;gap:6px;margin:16px 0;overflow-x:auto;padding-bottom:6px}
+.step{flex:1;min-width:110px;text-align:center;background:#eee;border-radius:12px;padding:12px 6px}
+.step.done{background:#d4edda;border:2px solid #162e4d}
+.step.current{background:#fff3cd;border:2px solid #e67e22}
+.step .icon{font-size:24px;display:block}
+.step b{font-size:13px;display:block;margin-top:4px}.step small{font-size:11px;color:#666}
+.progress{height:10px;background:#eee;border-radius:20px;overflow:hidden;margin:8px 0}
+.progress div{height:100%;background:#162e4d}
+.invoice{border:2px solid #162e4d;border-radius:12px;padding:20px;margin-top:14px;background:#fff}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#162e4d;color:#fff;padding:14px 20px;border-radius:12px;z-index:999;display:none;max-width:90%;text-align:center}
+.final-box{background:#e8f5e9;border:2px solid #162e4d;border-radius:12px;padding:12px;margin-top:10px}
+.pickup-box{background:#fff3cd;border:2px dashed #e67e22;border-radius:12px;padding:14px;margin-top:12px}
+.settings-box{background:#f0f7ff;border:1px solid #2980b9;border-radius:12px;padding:14px;margin-top:12px}
+.client-box{background:#e8f5e9;border:2px solid #162e4d;border-radius:12px;padding:12px;margin-top:10px}
+.client-item{padding:10px;border:1px solid #eee;border-radius:10px;margin-top:6px;cursor:pointer;background:#fff}
+.client-item:hover{background:#e8f5e9}
+.receipt-img{max-width:100%;border:2px solid #162e4d;border-radius:12px;margin-top:8px}
+@media print{header,.no-print{display:none!important}}
+.header-logo{width:100%;height:auto;object-fit:contain;display:block;background:#fff}
+.welcome-card{position:relative;overflow:hidden}
+.welcome-bg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;opacity:.07;pointer-events:none}
+.invoice-logo{height:70px;object-fit:contain}
+</style>
+</head>
+<body>
+<header><img src="logo.png" class="header-logo"></header>
+<div id="toast" class="toast"></div>
+<div class="wrap" id="homeScreen">
+<div class="card welcome-card" style="text-align:center"><img src="logo.png" class="welcome-bg"><h2>أهلاً بيك في شركة تنفيذ المشروعات للمقاولات</h2>
+<p>📍 مواعيد الاستلام: <b id="homePickupTimes"></b></p>
+<div class="topbar"><button class="green" onclick="showSupplierLogin()">👤 أنا مورد - تتبع مستخلصي</button><button class="gold" onclick="showAdminLogin()">🔐 الإدارة</button></div></div>
+<div class="card hidden" id="supplierLogin">
+<h2>🔍 تتبع المستخلص - دخول آمن</h2>
+<p style="font-size:13px;color:#666">ادخل رقم الجوال + آخر 5 أرقام من الهوية عشان يفتح مستخلصك</p>
+<div><label>الاسم</label><input id="qName" placeholder=""></div>
+<div class="row"><div><label>رقم الجوال *</label><input id="qPhone" placeholder="05xxxxxxxx"></div><div><label>آخر 5 أرقام من الهوية *</label><input id="qId5" placeholder="مثال: 12345" maxlength="5" inputmode="numeric"></div></div>
+<button class="green" onclick="searchSupplier()">عرض مستخلصي</button>
+<div id="searchResult"></div>
+<button class="gray" style="width:100%;margin-top:10px" onclick="backHome()">⬅ رجوع</button>
+</div>
+<div class="card hidden" id="adminLogin" style="max-width:420px;margin:auto;text-align:center"><h2>🔐 دخول الإدارة</h2><label>كلمة السر</label><input id="adminPass" type="password" placeholder="اكتب كلمة السر"><button class="green" onclick="checkAdmin()">دخول</button><button class="gray" style="width:100%;margin-top:8px" onclick="backHome()">⬅ رجوع</button></div>
+</div>
+<div class="wrap hidden" id="adminScreen">
+<div class="topbar no-print"><button class="gray" onclick="logout()">🚪 خروج</button><button class="gold" onclick="exportExcel()">📥 إكسيل</button><button class="gold" onclick="window.print()">🖨️ طباعة</button></div>
+<label style="margin-top:12px;display:block;background:#e8f5e9;padding:12px;border-radius:10px"><input type="checkbox" id="autoWA" checked style="width:auto"> ✅ ابعت واتساب في المرحلة الأخيرة بس</label>
+<div class="card settings-box">
+<h2>⏰ إعدادات مواعيد الاستلام</h2>
+<div class="row"><div><label>أيام الاستلام</label><input id="setDays" value="السبت - الخميس"></div><div><label>من الساعة</label><input id="setFrom" type="time" value="09:00"></div></div>
+<div class="row"><div><label>إلى الساعة</label><input id="setTo" type="time" value="17:00"></div><div><label>الجمعة</label><select id="setFriday"><option value="مغلق - إجازة">مغلق - إجازة</option><option value="مفتوح">مفتوح</option></select></div></div>
+<label>عنوان الاستلام</label><input id="setAddress" value="مقر شركة تنفيذ المشروعات للمقاولات - جدة">
+<label>ملاحظة إضافية للاستلام</label><input id="setNote" placeholder="مثال: يرجى إحضار الهوية الأصلية + رقم المستخلص">
+<button class="blue" style="width:100%;margin-top:10px" onclick="saveSettings()">💾 حفظ مواعيد الاستلام</button>
+<div id="settingsPreview" style="margin-top:10px"></div>
+</div>
+<div class="alert-box no-print" id="dueAlert" style="display:none"><b>⚠️ تنبيه استحقاق</b><div id="dueList"></div></div>
+<div class="stats">
+<div class="stat"><span>العملاء المسجلين</span><b id="totalSuppliers">0</b></div>
+<div class="stat"><span>المستحقات</span><b id="totalDue">0 ر.س</b></div>
+<div class="stat"><span>مدفوع تحويل</span><b id="totalTransfer">0 ر.س</b></div>
+<div class="stat"><span>مدفوع نقدي / استلام</span><b id="totalCash">0 ر.س</b></div>
+</div>
+<div class="card">
+<h2>👥 تسجيل العملاء - العدد مفتوح</h2>
+<p style="font-size:13px;color:#666">سجل العملاء هنا مرة واحدة، وبعد كده هتختار منهم بالاسم أو الجوال، والعدد مفتوح براحتك.</p>
+<div><label>الاسم الثلاثي *</label><input id="sName" placeholder="مثال: أحمد محمد علي - لازم 3 أسماء"></div>
+<div class="row"><div><label>رقم الجوال *</label><input id="sPhone" placeholder="05xxxxxxxx"></div><div><label>آخر 5 أرقام من الهوية *</label><input id="sId5" placeholder="12345" maxlength="5" inputmode="numeric"></div></div>
+<div class="row"><div><label>النشاط / الشركة</label><input id="sNote" placeholder="مثال: مورد تمور"></div><div><label>المشروع</label><input id="sProject" placeholder="مثال: مشروع المدينة"></div></div>
+<button class="green" onclick="addSupplier()">حفظ العميل ✅</button>
+<div id="clientsCount" style="margin-top:8px;font-weight:bold;color:#162e4d"></div>
+<hr>
+<h2>🧾 إضافة مستخلص جديد - اختار العميل</h2>
+<label>🔍 ابحث واختار العميل (اكتب الاسم أو رقم الجوال)</label>
+<input id="clientSearch" oninput="filterClients()" placeholder="اكتب اسم العميل أو رقم الجوال... مثال: أحمد أو 05xxxxxxxx">
+<div id="clientPicker"></div>
+<div id="selectedClientBox" class="client-box hidden"></div>
+<div class="row"><div><label>قيمة المستخلص (ر.س)</label><input id="payAmount" type="number"></div><div><label>نوع العملية</label><select id="payType"><option value="add">➕ مستخلص جديد</option><option value="pay">➖ دفعنا له - استلم فلوسه</option></select></div></div>
+<div class="row"><div><label>طريقة الاستلام</label><select id="payMethod" onchange="toggleFinalType()"><option>تحويل بنكي</option><option>نقدي</option></select></div><div><label>📅 تاريخ الاستحقاق</label><input id="payDueDate" type="date"></div></div>
+<div class="row"><div><label>رقم المستخلص</label><input id="payNote" placeholder="مستخلص رقم..."></div><div><label>📍 مرحلة الاعتماد</label><select id="payStage" onchange="toggleFinalType()"><option value="1">1 - مدير المشروع</option><option value="2">2 - المكتب الفني</option><option value="3">3 - الحسابات</option><option value="4">4 - المدير التنفيذي</option><option value="5">5 - المرحلة الأخيرة</option></select></div></div>
+<div><label>ملاحظة المرحلة</label><input id="payStageNote" placeholder="مثال: بانتظار توقيع..."></div>
+<div id="finalTypeBox" class="final-box hidden">
+<b>🏁 المرحلة الأخيرة - اختار نوع العميل:</b>
+<div style="display:flex;gap:8px;margin-top:10px">
+<label style="flex:1;background:#fff;padding:12px;border-radius:10px;text-align:center;cursor:pointer"><input type="radio" name="finalType" value="transfer" checked style="width:auto"> 🏦 تم التحويل<br><small>للعميل اللي بحول له</small></label>
+<label style="flex:1;background:#fff;padding:12px;border-radius:10px;text-align:center;cursor:pointer"><input type="radio" name="finalType" value="pickup" style="width:auto"> 💵 جاهز للاستلام<br><small>للعميل اللي هييجي يستلم</small></label>
+</div>
+<div id="finalPreview" class="pickup-box" style="display:none"></div>
+</div>
+<div id="receiptBox" class="pickup-box hidden">
+<b>📷 إيصال التحويل البنكي:</b>
+<p style="font-size:13px">بعد ما تحول، صوّر الإيصال بالكاميرا، هيتحفظ مع المستخلص.</p>
+<label style="background:#162e4d;color:#fff;text-align:center;padding:14px;border-radius:10px;cursor:pointer">📷 افتح الكاميرا وصوّر الإيصال<input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none" onchange="handleReceipt(this)"></label>
+<div id="receiptPreview"></div>
+</div>
+<div id="customPickupBox" class="pickup-box hidden">
+<b>📅 موعد استلام مخصص (اختياري):</b>
+<div class="row"><div><label>يوم الاستلام</label><input id="customPickupDate" type="date"></div><div><label>من - إلى</label><input id="customPickupTime" placeholder="مثال: 10 صباحاً - 2 ظهراً"></div></div>
+</div>
+<button class="green" onclick="addTransaction()">تسجيل المستخلص</button>
+</div>
+<div class="card">
+<h2>📋 كل العملاء والمستخلصات</h2>
+<input id="filterList" oninput="renderList()" placeholder="ابحث بالاسم أو الجوال أو آخر 5 من الهوية...">
+<select id="filterStage" onchange="renderList()" style="margin-top:8px"><option value="">كل المراحل</option><option value="1">1 - مدير المشروع</option><option value="2">2 - المكتب الفني</option><option value="3">3 - الحسابات</option><option value="4">4 - المدير التنفيذي</option><option value="5">5 - المرحلة الأخيرة</option></select>
+<select id="filterFinal" onchange="renderList()" style="margin-top:8px"><option value="">كل أنواع المرحلة الأخيرة</option><option value="transfer">🏦 تم التحويل</option><option value="pickup">💵 جاهز للاستلام</option></select>
+<div id="allSuppliers"></div>
+</div>
+<div class="card settings-box">
+<h2>🔐 تغيير باسورد الإدارة</h2>
+<p style="font-size:13px;color:#666">اكتب الباسورد الحالي، وبعدين الجديد. الجديد هو اللي هيشتغل بعد كده.</p>
+<div><label>الباسورد الحالي</label><input id="oldPass" type="password" placeholder="اكتب الباسورد الحالي"></div>
+<div><label>الباسورد الجديد</label><input id="newPass" type="password" placeholder="اكتب الباسورد الجديد"></div>
+<button class="blue" style="width:100%;margin-top:10px" onclick="changeAdminPass()">💾 حفظ الباسورد الجديد</button>
+</div>
+<div id="invoiceArea"></div>
+</div>
+<script>
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyxQqIOmfrkMjdGCZZNKOTwRCP1jhdvTWXJfKLUCax78QcJroTnR4pzm3HvuRjU392J/exec';
+let ADMIN_PASS=localStorage.getItem('arbah_admin_pass')||'1234';
+const STAGES=["","مدير المشروع","المكتب الفني","الحسابات","المدير التنفيذي","المرحلة الأخيرة"];
+const STAGE_ICON=["","👷","📐","🧾","👔","✅"];
+let suppliers=JSON.parse(localStorage.getItem('arbah_v11')||'[]');
+let selectedSupplierId=null;
+let pendingReceipt=null;
+let settings=JSON.parse(localStorage.getItem('arbah_settings')||JSON.stringify({days:'السبت - الخميس',from:'09:00',to:'17:00',friday:'مغلق - إجازة',address:'مقر شركة تنفيذ المشروعات للمقاولات - جدة',note:'يرجى إحضار الهوية الأصلية + رقم المستخلص'}));
+async function saveToSheet(){
+  try{ await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({suppliers,settings})}); }catch(e){}
+}
+async function loadFromSheet(){
+  try{
+    let r = await fetch(SCRIPT_URL);
+    let txt = await r.text();
+    if(!txt || txt.trim()==='[]') return;
+    let d = JSON.parse(txt);
+    if(d.suppliers){ suppliers = d.suppliers; localStorage.setItem('arbah_v11',JSON.stringify(suppliers)); }
+    if(d.settings){ settings = d.settings; localStorage.setItem('arbah_settings',JSON.stringify(settings)); }
+    loadSettings(); save();
+  }catch(e){}
+}
+function loadSettings(){document.getElementById('setDays').value=settings.days;document.getElementById('setFrom').value=settings.from;document.getElementById('setTo').value=settings.to;document.getElementById('setFriday').value=settings.friday;document.getElementById('setAddress').value=settings.address;document.getElementById('setNote').value=settings.note;updateSettingsPreview();}
+function saveSettings(){settings={days:document.getElementById('setDays').value,from:document.getElementById('setFrom').value,to:document.getElementById('setTo').value,friday:document.getElementById('setFriday').value,address:document.getElementById('setAddress').value,note:document.getElementById('setNote').value};localStorage.setItem('arbah_settings',JSON.stringify(settings));updateSettingsPreview();showToast('تم حفظ مواعيد الاستلام ✅');saveToSheet();}
+function formatTime(t){if(!t) return '';let [h,m]=t.split(':');let hh=+h;let ap=hh>=12?'م':'ص';if(hh>12) hh-=12; if(hh===0) hh=12; return hh+':'+m+' '+(ap==='م'?'مساءً':'صباحاً');}
+function getPickupText(customDate,customTime){
+if(customDate||customTime) return `موعد الاستلام: ${customDate||''} ${customTime||''}\nالعنوان: ${settings.address}`;
+return `مواعيد الاستلام: ${settings.days} من ${formatTime(settings.from)} إلى ${formatTime(settings.to)}\nالجمعة: ${settings.friday}\nالعنوان: ${settings.address}${settings.note?'\nملاحظة: '+settings.note:''}`;
+}
+function updateSettingsPreview(){let txt=getPickupText();document.getElementById('settingsPreview').innerHTML=`<div class="pickup-box"><b>⏰ المعاينة اللي هتوصل للعميل:</b><br>${txt.replace(/\n/g,'<br>')}</div>`;let home=document.getElementById('homePickupTimes');if(home) home.innerText=`${settings.days} من ${formatTime(settings.from)} إلى ${formatTime(settings.to)}`;}
+function showToast(msg){let t=document.getElementById('toast');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',4500);}
+function backHome(){document.getElementById('homeScreen').classList.remove('hidden');document.getElementById('adminScreen').classList.add('hidden');document.getElementById('supplierLogin').classList.add('hidden');document.getElementById('adminLogin').classList.add('hidden');}
+function showSupplierLogin(){document.getElementById('supplierLogin').classList.remove('hidden');document.getElementById('adminLogin').classList.add('hidden');}
+function showAdminLogin(){document.getElementById('adminLogin').classList.remove('hidden');document.getElementById('supplierLogin').classList.add('hidden');}
+function checkAdmin(){if(document.getElementById('adminPass').value===ADMIN_PASS){document.getElementById('homeScreen').classList.add('hidden');document.getElementById('adminScreen').classList.remove('hidden');save();}else alert('كلمة السر غلط ❌');}
+function changeAdminPass(){let o=document.getElementById('oldPass').value,n=document.getElementById('newPass').value;if(!o||!n) return alert('اكتب الباسورد الحالي والجديد');if(o!==ADMIN_PASS) return alert('الباسورد الحالي غلط ❌');ADMIN_PASS=n;localStorage.setItem('arbah_admin_pass',n);document.getElementById('oldPass').value='';document.getElementById('newPass').value='';showToast('تم تغيير باسورد الإدارة ✅');}
+function logout(){backHome();document.getElementById('adminPass').value='';}
+function save(){localStorage.setItem('arbah_v11',JSON.stringify(suppliers));renderList();updateStats();filterClients();checkDue();updateSettingsPreview();saveToSheet();}
+function updateStats(){let due=suppliers.reduce((a,s)=>a+s.balance,0),tr=0,cash=0;suppliers.forEach(s=>s.tx.forEach(t=>{if(t.type.includes('دفع')){if(t.method==='نقدي')cash+=Math.abs(t.amount);else tr+=Math.abs(t.amount);}}));document.getElementById('totalSuppliers').innerText=suppliers.length;document.getElementById('totalDue').innerText=due.toLocaleString()+' ر.س';document.getElementById('totalTransfer').innerText=tr.toLocaleString()+' ر.س';document.getElementById('totalCash').innerText=cash.toLocaleString()+' ر.س';let cc=document.getElementById('clientsCount');if(cc) cc.innerText=`تم تسجيل ${suppliers.length} عميل - العدد مفتوح`;}
+function checkDue(){let today=new Date();today.setHours(0,0,0,0);let overdue=[];suppliers.forEach(s=>s.tx.forEach(t=>{if(t.dueDate && t.type==='مستخلص'){let d=new Date(t.dueDate);let diff=Math.ceil((d-today)/(1000*60*60*24));if(diff<0) overdue.push(`🔴 ${s.name} - ${t.note} - متأخر ${Math.abs(diff)} يوم`);else if(diff<=3) overdue.push(`🟡 ${s.name} - ${t.note} - باقي ${diff} يوم`);}}));let box=document.getElementById('dueAlert');if(overdue.length){box.style.display='block';document.getElementById('dueList').innerHTML=overdue.map(x=>`<div>${x}</div>`).join('');}else box.style.display='none';}
+function isTripleName(name){return name.trim().split(/\s+/).filter(Boolean).length>=3;}
+function toggleFinalType(){
+let stage=document.getElementById('payStage').value, method=document.getElementById('payMethod').value;
+let box=document.getElementById('finalTypeBox'), custom=document.getElementById('customPickupBox'), receipt=document.getElementById('receiptBox');
+if(stage==='5'){
+box.classList.remove('hidden');
+if(method==='تحويل بنكي') document.querySelector('input[name="finalType"][value="transfer"]').checked=true;
+if(method==='نقدي') document.querySelector('input[name="finalType"][value="pickup"]').checked=true;
+updateFinalPreview();
+} else { box.classList.add('hidden'); custom.classList.add('hidden'); receipt.classList.add('hidden'); }
+}
+function getFinalType(){ let el=document.querySelector('input[name="finalType"]:checked'); return el?el.value:'transfer'; }
+function updateFinalPreview(){
+let ft=getFinalType(); let p=document.getElementById('finalPreview'); let custom=document.getElementById('customPickupBox'); let receipt=document.getElementById('receiptBox');
+if(ft==='pickup'){ p.style.display='block'; custom.classList.remove('hidden'); receipt.classList.add('hidden'); p.innerHTML=`📩 <b>رسالة الاستلام:</b><br>فلوسك جاهزة للاستلام 💵<br>${getPickupText(document.getElementById('customPickupDate').value, document.getElementById('customPickupTime').value).replace(/\n/g,'<br>')}`; }
+else { p.style.display='block'; custom.classList.add('hidden'); receipt.classList.remove('hidden'); p.innerHTML=`📩 <b>رسالة التحويل:</b><br>تم التحويل ✅ فلوسك اتحولت لحسابك البنكي 🏦<br><small>لا تنسى تصوير إيصال التحويل 👇</small>`; }
+}
+function handleReceipt(input){
+let file=input.files[0]; if(!file) return;
+let reader=new FileReader(); reader.onload=e=>{ pendingReceipt=e.target.result; document.getElementById('receiptPreview').innerHTML=`<img src="${pendingReceipt}" class="receipt-img"><p style="color:green">✅ تم التقاط الإيصال، هيتحفظ مع المستخلص</p>`; showToast('تم تصوير الإيصال ✅'); }; reader.readAsDataURL(file);
+}
+document.addEventListener('change',e=>{ if(e.target.name==='finalType') updateFinalPreview(); if(e.target.id==='customPickupDate'||e.target.id==='customPickupTime') updateFinalPreview(); });
+function filterClients(){
+let q=(document.getElementById('clientSearch').value||'').trim().toLowerCase();
+let box=document.getElementById('clientPicker');
+if(!q){ box.innerHTML=`<p style="font-size:13px;color:#888">اكتب اسم العميل أو رقم الجوال عشان يظهر هنا... عندك ${suppliers.length} عميل مسجل - العدد مفتوح</p>`; return; }
+let list=suppliers.filter(s=>s.name.toLowerCase().includes(q)||s.phone.includes(q)||(s.id5||'').includes(q)).slice(0,10);
+if(!list.length){ box.innerHTML=`<p style="color:red">مفيش عميل بالاسم أو الجوال ده - سجله الأول فوق</p>`; return; }
+box.innerHTML=list.map(s=>`<div class="client-item" onclick="selectClient(${s.id})"><b>👤 ${s.name}</b><br><small>📱 ${s.phone} | 🪪 آخر 5: ${s.id5||''} | الرصيد: ${s.balance} ر.س</small></div>`).join('');
+}
+function selectClient(id){
+selectedSupplierId=id; let s=suppliers.find(x=>x.id===id);
+document.getElementById('clientSearch').value=s.name;
+document.getElementById('clientPicker').innerHTML='';
+let box=document.getElementById('selectedClientBox'); box.classList.remove('hidden');
+box.innerHTML=`<b>✅ العميل المختار:</b><br>👤 الاسم: <b>${s.name}</b><br>📱 الجوال: <b>${s.phone}</b><br>🪪 آخر 5 من الهوية: <b>${s.id5||''}</b><br>💰 الرصيد الحالي: <b>${s.balance} ر.س</b> <button class="red" style="padding:6px 10px" onclick="clearSelectedClient()">✕ تغيير</button>`;
+showToast('تم اختيار '+s.name+' ✅');
+}
+function clearSelectedClient(){ selectedSupplierId=null; document.getElementById('clientSearch').value=''; document.getElementById('selectedClientBox').classList.add('hidden'); document.getElementById('selectedClientBox').innerHTML=''; filterClients(); }
+function sendWhatsApp(s,t){
+if(t.stage!==5){ showToast('الواتساب بيتبعت في المرحلة الأخيرة بس'); return; }
+let link=location.href.split('?')[0]+`?supplier=${encodeURIComponent(s.phone)}&id5=${encodeURIComponent(s.id5||'')}`;
+let msg='';
+if(t.finalType==='pickup'){
+msg=`السلام عليكم ${s.name}\nمستخلصك ${t.note} في شركة تنفيذ المشروعات للمقاولات - PECC بقى جاهز للاستلام 💵\nالقيمة: ${Math.abs(t.amount)} ر.س\n${getPickupText(t.customPickupDate,t.customPickupTime)}\nتابع مستخلصك من هنا: ${link}`;
+} else {
+msg=`السلام عليكم ${s.name}\nمبروك ✅ تم التحويل\nمستخلصك ${t.note} في شركة تنفيذ المشروعات للمقاولات - PECC اتحول لحسابك البنكي 🏦\nالقيمة: ${Math.abs(t.amount)} ر.س\n${t.receipt?'📷 إيصال التحويل موجود في ملفك، اطلبه من الإدارة لو محتاجه':''}\nلو موصلش خلال 24 ساعة كلمنا.\nتابع مستخلصك من هنا: ${link}`;
+}
+window.open(`https://wa.me/966${s.phone.replace(/^0/,'')}?text=${encodeURIComponent(msg)}`,'_blank');
+showToast('📲 اتفتح الواتساب - دوس إرسال');
+}
+function maybeSendWhatsApp(s,t){
+if(t.stage===5 && document.getElementById('autoWA').checked){
+let label = t.finalType==='pickup' ? 'جاهز للاستلام 💵' : 'تم التحويل 🏦';
+if(confirm(`المستخلص وصل للمرحلة الأخيرة: ${label}\nتحب أبعت للمورد واتساب دلوقتي؟`)) sendWhatsApp(s,t);
+}
+}
+function getStageLabel(t){
+if(t.stage!==5) return STAGES[t.stage];
+if(t.finalType==='pickup') return 'جاهز للاستلام 💵';
+if(t.finalType==='transfer') return 'تم التحويل 🏦';
+return 'تم التحويل / جاهز للاستلام';
+}
+function stageHTML(stage,stageNote,t){
+let pct=stage*20;let html=`<div class="progress"><div style="width:${pct}%"></div></div><div class="steps">`;
+for(let i=1;i<=5;i++){
+let cls=i<stage?'done':(i===stage?'current':'');
+let label=i<stage?'✅ تم الاعتماد':(i===stage?'🟢 جاري الآن - '+(stageNote||''):'⏳ بانتظار');
+let name = i===5 ? (t && t.finalType==='pickup' ? 'جاهز للاستلام' : t && t.finalType==='transfer' ? 'تم التحويل' : 'تم التحويل / جاهز للاستلام') : STAGES[i];
+html+=`<div class="step ${cls}"><span class="icon">${STAGE_ICON[i]}</span><b>${i} - ${name}</b><small>${label}</small></div>`;
+}
+html+=`</div><p style="text-align:center"><b>الحالة الحالية: ${t?getStageLabel(t):STAGES[stage]}</b> - ${stage===5?'مبروك، فلوسك جاهزة ✅':'نسبة الإنجاز '+pct+'%'}</p>`;
+if(t && t.stage===5 && t.finalType==='pickup') html+=`<div class="pickup-box"><b>⏰ مواعيد الاستلام:</b><br>${getPickupText(t.customPickupDate,t.customPickupTime).replace(/\n/g,'<br>')}</div>`;
+if(t && t.receipt) html+=`<div class="pickup-box"><b>📷 إيصال التحويل:</b><br><img src="${t.receipt}" class="receipt-img"></div>`;
+return html;
+}
+function addSupplier(){
+const name=document.getElementById('sName').value.trim(),phone=document.getElementById('sPhone').value.trim(),id5=document.getElementById('sId5').value.trim();
+if(!name||!phone||!id5) return alert('اكتب الاسم الثلاثي + الجوال + آخر 5 من الهوية');
+if(!isTripleName(name)) return alert('❌ الاسم لازم يكون ثلاثي - مثال: أحمد محمد علي');
+if(!/^\d{5}$/.test(id5)) return alert('❌ آخر 5 من الهوية لازم يكون 5 أرقام بالظبط');
+if(suppliers.some(s=>s.phone===phone)) return alert('العميل ده متسجل قبل كده بنفس الجوال');
+suppliers.push({id:Date.now(),name,phone,id5,balance:0,note:document.getElementById('sNote').value,project:document.getElementById('sProject').value,tx:[]});
+save();
+alert('تم ✅ '+name+' اتسجل');
+document.getElementById('sName').value='';
+document.getElementById('sPhone').value='';
+document.getElementById('sId5').value='';
+document.getElementById('sNote').value='';
+document.getElementById('sProject').value='';
+document.getElementById('sName').focus();
+}
+function addTransaction(){
+if(!selectedSupplierId) return alert('⚠️ اختار العميل الأول من داشبورد العملاء فوق');
+let s=suppliers.find(x=>x.id===selectedSupplierId); if(!s) return alert('اختار العميل تاني');
+const amt=parseFloat(document.getElementById('payAmount').value)||0,type=document.getElementById('payType').value,method=document.getElementById('payMethod').value,note=document.getElementById('payNote').value||'',due=document.getElementById('payDueDate').value||'',stage=+document.getElementById('payStage').value,stageNote=document.getElementById('payStageNote').value||'',finalType= stage===5 ? getFinalType() : '', customDate=document.getElementById('customPickupDate').value||'', customTime=document.getElementById('customPickupTime').value||'';
+if(amt<=0) return alert('اكتب مبلغ صحيح');
+let newTx;
+if(type==='add'){s.balance+=amt;newTx={date:new Date().toLocaleString('ar-SA'),type:'مستخلص',amount:amt,method,note,dueDate:due,stage,stageNote,finalType,customPickupDate:customDate,customPickupTime:customTime,receipt: stage===5 && finalType==='transfer' ? (pendingReceipt||'') : ''};s.tx.push(newTx);}
+else{s.balance-=amt;newTx={date:new Date().toLocaleString('ar-SA'),type:'دفع / استلام',amount:-amt,method,note,dueDate:'',stage:5,stageNote:'تم التحويل',finalType: method==='نقدي'?'pickup':'transfer',customPickupDate:customDate,customPickupTime:customTime,receipt: pendingReceipt||''};s.tx.push(newTx);}
+pendingReceipt=null; document.getElementById('receiptPreview').innerHTML=''; document.getElementById('receiptInput').value='';
+document.getElementById('payAmount').value='';
+document.getElementById('payNote').value='';
+document.getElementById('payDueDate').value='';
+document.getElementById('payStageNote').value='';
+document.getElementById('customPickupDate').value='';
+document.getElementById('customPickupTime').value='';
+document.getElementById('payStage').value='1';
+document.getElementById('payType').value='add';
+document.getElementById('finalTypeBox').classList.add('hidden');
+document.getElementById('receiptBox').classList.add('hidden');
+document.getElementById('customPickupBox').classList.add('hidden');
+save();clearSelectedClient();maybeSendWhatsApp(s,newTx);if(newTx.stage!==5) alert('تم ✅ للعميل '+s.name+' - الرصيد: '+s.balance+' ر.س');}
+function nextStage(sid,txi){let s=suppliers.find(x=>x.id===sid);let t=s.tx[txi];if(t.stage<5){t.stage++;t.stageNote='تم الترحيل - '+new Date().toLocaleString('ar-SA');if(t.stage===5){if(!t.finalType) t.finalType = t.method==='نقدي' ? 'pickup' : 'transfer';save(); maybeSendWhatsApp(s,t);} else { save(); showToast('تم الترحيل لـ '+STAGES[t.stage]); }}else alert('وصل للمرحلة الأخيرة ✅');}
+function setStage(sid,txi,stage){let s=suppliers.find(x=>x.id===sid);let t=s.tx[txi];t.stage=+stage;if(t.stage===5 && !t.finalType) t.finalType = t.method==='نقدي'?'pickup':'transfer';save();if(t.stage===5) maybeSendWhatsApp(s,t);}
+function changeFinalType(sid,txi,val){let s=suppliers.find(x=>x.id===sid);s.tx[txi].finalType=val;save();showToast('تم تغيير النوع لـ '+(val==='pickup'?'جاهز للاستلام':'تم التحويل'));}
+function uploadReceiptForTx(sid,txi,input){let file=input.files[0]; if(!file) return; let r=new FileReader(); r.onload=e=>{let s=suppliers.find(x=>x.id===sid); s.tx[txi].receipt=e.target.result; save(); showToast('تم حفظ إيصال التحويل 📷');}; r.readAsDataURL(file);}
+function makeInvoice(id,txIndex){const s=suppliers.find(x=>x.id===id);const t=s.tx[txIndex];const invNo='INV-'+Date.now();document.getElementById('invoiceArea').innerHTML=`<div class="invoice"><div style="display:flex;justify-content:space-between;align-items:center"><div><img src="logo.png" class="invoice-logo"><h2 style="color:#162e4d;margin:0">PECC</h2><p>شركة تنفيذ المشروعات للمقاولات - السعودية</p></div><div><b>مستخلص</b><br>رقم: ${invNo}<br>${t.date}</div></div><hr><p><b>العميل:</b> ${s.name}<br><b>الجوال:</b> ${s.phone}<br><b>آخر 5 من الهوية:</b> ${s.id5||''}<br><b>المستخلص:</b> ${t.note}<br><b>الطريقة:</b> ${t.method}<br><b>الاستحقاق:</b> ${t.dueDate||'-'}<br><b>مرحلة الاعتماد:</b> ${getStageLabel(t)}</p>${stageHTML(t.stage,t.stageNote,t)}<table><tr><th>الوصف</th><th>المبلغ</th></tr><tr><td>${t.type} - ${t.note}</td><td>${Math.abs(t.amount)} ر.س</td></tr><tr><td><b>الرصيد الحالي</b></td><td><b>${s.balance} ر.س</b></td></tr></table><div class="no-print" style="text-align:center"><button class="blue" onclick="window.print()">📄 طباعة / PDF</button></div></div>`;document.getElementById('invoiceArea').scrollIntoView({behavior:'smooth'});}
+function showQR(id){const s=suppliers.find(x=>x.id===id);const link=location.href.split('?')[0]+`?supplier=${encodeURIComponent(s.phone)}&id5=${encodeURIComponent(s.id5||'')}`;document.getElementById('qr-'+id).innerHTML=`<div style="text-align:center;background:#f9f9f9;padding:12px;border-radius:12px"><img src="logo.png" style="height:50px;margin-bottom:6px"><br><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}"><p>امسح الكود واعرف مرحلة مستخلصك</p><button class="wa" onclick="window.open('https://wa.me/966${s.phone.replace(/^0/,'')}?text=${encodeURIComponent('تابع مستخلصك في شركة تنفيذ المشروعات للمقاولات - PECC: '+link)}')">📲 ابعت QR واتساب</button></div>`;}
+function searchSupplier(){
+const p=document.getElementById('qPhone').value.trim(),id5=document.getElementById('qId5').value.trim(),box=document.getElementById('searchResult');
+if(!p||!id5){box.innerHTML='<p style="color:red">❌ اكتب رقم الجوال + آخر 5 من الهوية</p>';return;}
+let s=suppliers.find(x=>x.phone===p && String(x.id5)===id5);
+if(!s){box.innerHTML='<p style="color:red">❌ البيانات مش مطابقة - اتأكد من الجوال وآخر 5 أرقام من الهوية</p>';return;}
+if(!s.tx.length){box.innerHTML=`<div style="margin-top:14px;background:#f9f9f9;padding:14px;border-radius:12px"><b>أهلاً ${s.name}</b><br>رصيدك: <span class="balance">0 ر.س</span><p>لسه مفيش مستخلصات مسجلة ليك</p></div>`;return;}
+let last=s.tx[s.tx.length-1];box.innerHTML=`<div style="margin-top:14px;background:#f9f9f9;padding:14px;border-radius:12px"><b>أهلاً ${s.name}</b><br>رصيدك: <span class="balance">${s.balance} ر.س</span><h3>🧾 آخر مستخلص: ${last.note} - ${Math.abs(last.amount)} ر.س</h3>${stageHTML(last.stage,last.stageNote,last)}<table><tr><th>المستخلص</th><th>المبلغ</th><th>المرحلة</th><th>الاستحقاق</th><th>فاتورة</th></tr>${s.tx.map((t,i)=>`<tr><td>${t.note}</td><td>${t.amount} ر.س</td><td>${getStageLabel(t)}</td><td>${t.dueDate||'-'}</td><td><button class="blue" onclick="makeInvoice(${s.id},${i})">فاتورة</button></td></tr>`).join('')}</table></div>`;}
+function renderList(){const f=(document.getElementById('filterList').value||'').toLowerCase(),fs=document.getElementById('filterStage').value,ff=document.getElementById('filterFinal').value;let list=suppliers.filter(s=>s.name.toLowerCase().includes(f)||s.phone.includes(f)||(s.id5||'').includes(f));if(fs)list=list.filter(s=>s.tx.some(t=>String(t.stage)===fs));if(ff)list=list.filter(s=>s.tx.some(t=>t.finalType===ff));document.getElementById('allSuppliers').innerHTML=list.length?list.map(s=>`<div class="supplier"><b>${s.name}</b> - ${s.phone} | 🪪 ${s.id5||''} | ${s.note||''} ${s.project? ' | مشروع: '+s.project :''}<br>الرصيد: <b style="color:#162e4d">${s.balance} ر.س</b><br><button class="gold" onclick="document.getElementById('hist-${s.id}').style.display='block'">المستخلصات</button> <button class="blue" onclick="showQR(${s.id})">📷 QR</button> <button class="red" onclick="delSupplier(${s.id})">حذف</button><div id="qr-${s.id}"></div><div id="hist-${s.id}" style="display:none">${s.tx.length?s.tx.map((t,i)=>`<div style="border:1px solid #eee;border-radius:10px;padding:10px;margin-top:8px"><b>${t.note}</b> - ${t.amount} ر.س - ${t.date}<br>${stageHTML(t.stage,t.stageNote,t)}${t.stage===5?`<div class="final-box"><b>🏁 المرحلة الأخيرة:</b> <select onchange="changeFinalType(${s.id},${i},this.value)" style="margin-top:6px"><option value="transfer" ${t.finalType==='transfer'?'selected':''}>🏦 تم التحويل</option><option value="pickup" ${t.finalType==='pickup'?'selected':''}>💵 جاهز للاستلام</option></select>${t.finalType==='transfer'?`<div style="margin-top:8px"><label style="background:#162e4d;color:#fff;text-align:center;padding:10px;border-radius:10px;cursor:pointer;display:block">📷 صوّر إيصال التحويل<input type="file" accept="image/*" capture="environment" style="display:none" onchange="uploadReceiptForTx(${s.id},${i},this)"></label>${t.receipt?`<img src="${t.receipt}" class="receipt-img">`:''}</div>`:''}</div>`:''}<div class="topbar" style="margin-top:8px"><button class="green" onclick="nextStage(${s.id},${i})">⏭️ ترحيل</button><select onchange="setStage(${s.id},${i},this.value)" style="flex:1"><option value="">تغيير المرحلة...</option>${[1,2,3,4,5].map(n=>`<option value="${n}" ${t.stage===n?'selected':''}>${n} - ${STAGES[n]}</option>`).join('')}</select><button class="blue" onclick="makeInvoice(${s.id},${i})">📄 فاتورة</button>${t.stage===5?`<button class="wa" onclick="sendWhatsApp(suppliers.find(x=>x.id===${s.id}), suppliers.find(x=>x.id===${s.id}).tx[${i}])">${t.finalType==='pickup'?'💵 واتساب - جاهز للاستلام':'🏦 واتساب - تم التحويل'}</button>`:''}</div></div>`).join(''):'<p>مفيش مستخلصات لسه</p>'}</div></div>`).join(''):'<p>مفيش عملاء - سجل العملاء الأول</p>';}
+function delSupplier(id){if(confirm('متأكد؟')){suppliers=suppliers.filter(s=>s.id!==id);save();}}
+function exportExcel(){let csv="الاسم,الجوال,اخر 5 من الهوية,الرصيد,اخر مرحلة\n"+suppliers.map(s=>`${s.name},${s.phone},${s.id5||''},${s.balance},${s.tx[s.tx.length-1]?getStageLabel(s.tx[s.tx.length-1]):''}`).join('\n');let blob=new Blob(['\ufeff'+csv],{type:'text/csv'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pecc.csv';a.click();}
+window.onload=()=>{const params=new URLSearchParams(location.search);const p=params.get('supplier');const id5=params.get('id5');if(p){document.getElementById('qPhone').value=p;if(id5) document.getElementById('qId5').value=id5;showSupplierLogin();}};
+loadSettings(); save(); loadFromSheet();
+</script>
+</body>
+</html>  
