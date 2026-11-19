@@ -3,52 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>أرباح - إدارة العملاء</title>
+<title>PECC - شركة تنفيذ المشروعات للمقاولات</title>
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial}
 body{margin:0;background:#f1f5f9;color:#111}
-header{background:#0f172a;color:#fff;padding:16px;text-align:center;position:sticky;top:0;z-index:10}
-header h1{margin:0;font-size:22px}
-header p{margin:4px 0 0;opacity:.8;font-size:13px}
+header{background:#0f172a;color:#fff;padding:16px;text-align:center}
+header .logo{font-size:36px;font-weight:900;letter-spacing:2px}
+header .logo span{color:#f97316}
+header p{margin:4px 0;opacity:.9;font-size:14px}
 .container{max-width:900px;margin:auto;padding:12px}
 .card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .stat{background:#f8fafc;border-radius:12px;padding:12px;text-align:center}
 .stat b{display:block;font-size:20px}
 .stat span{font-size:12px;color:#64748b}
-input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;margin:5px 0;font-size:15px}
+input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;margin:5px 0;font-size:15px}
 button{border:0;border-radius:10px;padding:11px 14px;font-size:15px;cursor:pointer}
 .btn-main{background:#16a34a;color:#fff;width:100%}
-.btn-dark{background:#0f172a;color:#fff}
+.btn-dark{background:#1e293b;color:#fff}
+.btn-orange{background:#f97316;color:#fff}
 .btn-red{background:#dc2626;color:#fff}
-.row{display:flex;gap:8px}
-.row>*{flex:1}
+.btn-blue{background:#2563eb;color:#fff;width:100%}
+.row{display:flex;gap:8px}.row>*{flex:1}
 .client{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin:8px 0}
-.client h3{margin:0 0 6px}
-.client small{color:#64748b}
+.client h3{margin:0 0 6px}.client small{color:#64748b}
 .badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:12px;background:#fee2e2;color:#991b1b}
 .badge.ok{background:#dcfce7;color:#166534}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:20px;display:none;z-index:99}
 .flex{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hidden{display:none}
+.loginBox{max-width:400px;margin:30px auto}
 </style>
 </head>
 <body>
-<header><h1>💰 أرباح</h1><p>إدارة العملاء والموردين - مربوط بجوجل شيت</p></header>
+<header>
+<div class="logo">PE<span>CC</span></div>
+<p>شركة تنفيذ المشروعات للمقاولات</p>
+<p>Projects execution contracting co</p>
+<p id="workHours">📍 أهلاً بيك في شركة تنفيذ المشروعات للمقاولات<br>مواعيد العمل : السبت - الخميس • من 9:00 صباحاً لـ 5:00 مساءً</p>
+</header>
 <div class="container">
+  <!-- شاشة الدخول -->
+<div id="loginScreen" class="card loginBox">
+<h3 style="text-align:center">👑 دخول الإدارة</h3>
+<p style="text-align:center;color:#64748b;font-size:13px">كلمة السر</p>
+<input id="loginPass" type="password" placeholder="اكتب كلمة السر">
+<button class="btn-blue" onclick="doLogin()">دخول</button>
+<p style="text-align:center;font-size:13px"><a href="#" onclick="showToast('تواصل مع الإدارة')">نسيت كلمة السر ؟</a></p>
+<div style="display:flex;gap:8px;margin-top:10px">
+<button class="btn-orange" style="flex:1" onclick="showToast('اتصل بنا')">اتصل بنا</button>
+<button class="btn-dark" style="flex:1" onclick="showToast('واتساب')">واتساب</button>
+</div>
+</div>
+
+<!-- الشاشة الرئيسية -->
+<div id="mainScreen" class="hidden">
 <div class="card stats">
 <div class="stat"><b id="totalClients">0</b><span>إجمالي العملاء</span></div>
 <div class="stat"><b id="totalMoney">0</b><span>إجمالي المبالغ</span></div>
 <div class="stat"><b id="totalDue">0</b><span>مستحق</span></div>
 </div>
+
 <div class="card">
-<h3 style="margin:0 0 8px">➕ إضافة عميل / مورد جديد</h3>
-<input id="cName" placeholder="اسم العميل">
-<input id="cPhone" placeholder="رقم التليفون">
+<h3>➕ إضافة عميل / مورد جديد</h3>
+<input id="cName" placeholder="اسم العميل / المورد - مثال: أحمد محمد علي">
+<input id="cPhone" placeholder="رقم التليفون - مثال: 0512345678">
 <input id="cAmount" type="number" placeholder="المبلغ">
 <input id="cDate" type="date">
 <input id="cNote" placeholder="ملاحظة">
 <button class="btn-main" onclick="addSupplier()">💾 حفظ العميل</button>
 </div>
+
 <div class="card">
 <div class="flex">
 <h3 style="margin:0">📋 قائمة العملاء</h3>
@@ -59,16 +84,39 @@ button{border:0;border-radius:10px;padding:11px 14px;font-size:15px;cursor:point
 <div id="list"></div>
 </div>
 <div class="card">
-<h3 style="margin:0 0 8px">⚙️ الإعدادات</h3>
-<input id="setShop" placeholder="اسم المحل">
-<input id="setPass" placeholder="باسورد الأدمن">
+<h3>⚙️ إعدادات مواعيد الاستلام</h3>
+<div class="row">
+<div><label>أيام الاستلام</label><select id="setDays"><option>السبت - الخميس</option><option>السبت - الجمعة</option><option>كل الأيام</option></select></div>
+<div><label>من الساعة</label><select id="setFrom"><option>9:00</option><option>8:00</option><option>10:00</option></select></div>
+<div><label>إلى الساعة</label><select id="setTo"><option>5:00</option><option>6:00</option><option>4:00</option></select></div>
+</div>
+<label>عنوان الاستلام</label>
+<input id="setAddress" placeholder="مقر شركة تنفيذ المشروعات للمقاولات - جدة">
+<label>ملاحظة إضافة الاستلام</label>
+<input id="setNote" placeholder="يرجى إحضار الهوية الأصلية و رقم الاستلام">
+</div>
+
+<div class="card">
+<h3>🔐 تغيير باسورد الإدارة</h3>
+<p style="font-size:13px;color:#64748b">تغيير كلمة السر الحالية 1234 لكلمة جديدة</p>
+<input id="oldPass" type="password" placeholder="الباسورد الحالي">
+<input id="newPass" type="password" placeholder="الباسورد الجديد">
+<input id="confirmPass" type="password" placeholder="تأكيد الباسورد الجديد">
+<button class="btn-blue" onclick="changePassword()">🔒 حفظ الباسورد الجديد</button>
+</div>
+
+<div class="card">
+<h3>⚙️ كل الإعدادات والاستلامات</h3>
+<label>كل الفروع</label><select><option>كل الفروع</option></select>
+<label>كل المدن - مثال: جدة</label><input placeholder="جدة">
 <button class="btn-dark" onclick="saveSettings()">حفظ الإعدادات</button>
 <div id="settingsPreview" style="font-size:13px;color:#475569;margin-top:8px"></div>
+<button class="btn-red" style="width:100%;margin-top:10px" onclick="logout()">خروج من الإدارة</button>
+</div>
 </div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
-// ===== الإضافة 1 : الربط بجوجل شيت =====
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxQqIOmfrkMjdGCZZNKOTwRCP1jhdvTWXJfKLUCax78QcJroTnR4pzm3HvuRjU392J/exec";
 let ADMIN_PASS = localStorage.getItem('arbah_pass') || "1234";
 let suppliers = JSON.parse(localStorage.getItem('arbah_v11') || "[]");
@@ -81,22 +129,38 @@ function showToast(msg){
   t.textContent = msg; t.style.display='block';
   setTimeout(()=> t.style.display='none', 2500);
 }
-
+function doLogin(){
+  let p = document.getElementById('loginPass').value;
+  if(p == ADMIN_PASS){
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainScreen').classList.remove('hidden');
+    showToast('✅ أهلاً بيك في الإدارة');
+    loadFromSheet();
+  } else { showToast('❌ كلمة السر غلط'); }
+}
+function logout(){
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('mainScreen').classList.add('hidden');
+}
+function changePassword(){
+  let o = document.getElementById('oldPass').value;
+  let n = document.getElementById('newPass').value;
+  let c = document.getElementById('confirmPass').value;
+  if(o != ADMIN_PASS){ showToast('الباسورد الحالي غلط'); return; }
+  if(!n || n != c){ showToast('الباسورد الجديد مش متطابق'); return; }
+  ADMIN_PASS = n;
+  localStorage.setItem('arbah_pass', ADMIN_PASS);
+  syncToSheet(); showToast('✅ تم تغيير الباسورد');
+}
 async function syncToSheet(){
   if(isSyncing) return; isSyncing = true;
   try{
-    await fetch(SCRIPT_URL, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({action:'save', suppliers: suppliers, settings: settings, adminPass: ADMIN_PASS})
-    });
-  }catch(e){ console.log('sync fail', e); }
+    await fetch(SCRIPT_URL, {method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body: JSON.stringify({action:'save', suppliers, settings, adminPass: ADMIN_PASS})});
+  }catch(e){}
   isSyncing = false;
 }
-
 async function loadFromSheet(){
   try{
-    showToast('⏳ جاري التحميل من جوجل...');
     let r = await fetch(SCRIPT_URL + '?action=load');
     let d = await r.json();
     if(d && d.suppliers){
@@ -104,17 +168,10 @@ async function loadFromSheet(){
       if(d.settings) settings = d.settings;
       if(d.adminPass) ADMIN_PASS = d.adminPass;
       localStorage.setItem('arbah_v11', JSON.stringify(suppliers));
-      localStorage.setItem('arbah_settings', JSON.stringify(settings));
       save();
-      showToast('✅ تم تحميل البيانات من جوجل شيت');
-    } else {
-      showToast('⚠️ الشيت فاضي، هرفع اللي عندك');
-      syncToSheet();
     }
-  }catch(e){ showToast('❌ مش قادر أوصل لجوجل'); }
+  }catch(e){}
 }
-
-// ===== الإضافة 2 : دالة الحفظ الجديدة =====
 function save(){
   localStorage.setItem('arbah_v11', JSON.stringify(suppliers));
   renderList(); updateStats(); filterClients(); checkDue(); updateSettingsPreview();
@@ -128,26 +185,18 @@ function save(){
   let note = document.getElementById('cNote').value.trim();
   if(!name){ showToast('اكتب الاسم الأول'); return; }
   suppliers.unshift({id: Date.now(), name, phone, amount, date, note, paid: false});
-  document.getElementById('cName').value='';
-  document.getElementById('cPhone').value='';
-  document.getElementById('cAmount').value='';
-  document.getElementById('cNote').value='';
-  save();
-  showToast('✅ تم الحفظ');
+  document.getElementById('cName').value=''; document.getElementById('cPhone').value='';
+  document.getElementById('cAmount').value=''; document.getElementById('cNote').value='';
+  save(); showToast('✅ تم الحفظ');
 }
-
 function deleteSupplier(id){
   if(!confirm('متأكد تحذف العميل ده؟')) return;
-  suppliers = suppliers.filter(s => s.id != id);
-  save();
+  suppliers = suppliers.filter(s => s.id != id); save();
 }
-
 function togglePaid(id){
   let s = suppliers.find(x => x.id == id);
-  if(s) s.paid = !s.paid;
-  save();
+  if(s) s.paid = !s.paid; save();
 }
-
 function renderList(){
   let box = document.getElementById('list');
   let data = filtered.length ? filtered : suppliers;
@@ -163,7 +212,6 @@ function renderList(){
     </div>
   </div>`).join('');
 }
-
 function updateStats(){
   document.getElementById('totalClients').textContent = suppliers.length;
   let total = suppliers.reduce((a,s)=> a + (parseFloat(s.amount)||0), 0);
@@ -171,38 +219,37 @@ function updateStats(){
   document.getElementById('totalMoney').textContent = total + ' ج';
   document.getElementById('totalDue').textContent = due + ' ج';
 }
-
 function filterClients(){
   let q = document.getElementById('search').value.toLowerCase();
   filtered = suppliers.filter(s => (s.name||'').toLowerCase().includes(q) || (s.phone||'').includes(q));
   renderList();
 }
-
 function checkDue(){
   let due = suppliers.filter(s=>!s.paid);
   document.getElementById('dueBox').innerHTML = due.length ? `<div style="background:#fef3c7;padding:10px;border-radius:10px;margin:8px 0">⚠️ عندك ${due.length} عميل لسه مدفعش</div>` : '';
-  }
-  function loadSettings(){
-  document.getElementById('setShop').value = settings.shop || '';
-  document.getElementById('setPass').value = ADMIN_PASS || '';
+}
+function loadSettings(){
+  document.getElementById('setDays').value = settings.days || 'السبت - الخميس';
+  document.getElementById('setFrom').value = settings.from || '9:00';
+  document.getElementById('setTo').value = settings.to || '5:00';
+  document.getElementById('setAddress').value = settings.address || '';
   updateSettingsPreview();
 }
-
 function saveSettings(){
-  settings.shop = document.getElementById('setShop').value;
-  ADMIN_PASS = document.getElementById('setPass').value || ADMIN_PASS;
+  settings.days = document.getElementById('setDays').value;
+  settings.from = document.getElementById('setFrom').value;
+  settings.to = document.getElementById('setTo').value;
+  settings.address = document.getElementById('setAddress').value;
+  settings.note = document.getElementById('setNote').value;
   localStorage.setItem('arbah_settings', JSON.stringify(settings));
-  localStorage.setItem('arbah_pass', ADMIN_PASS);
-  updateSettingsPreview(); syncToSheet();
-  showToast('✅ تم حفظ الإعدادات');
+  updateSettingsPreview(); syncToSheet(); showToast('✅ تم حفظ الإعدادات');
 }
-
 function updateSettingsPreview(){
-  document.getElementById('settingsPreview').textContent = 'المحل: ' + (settings.shop || '—') + ' | العملاء: ' + suppliers.length;
+  document.getElementById('settingsPreview').textContent = 'المواعيد: ' + (settings.days||'السبت - الخميس') + ' من ' + (settings.from||'9:00') + ' لـ ' + (settings.to||'5:00') + ' | العملاء: ' + suppliers.length;
+  let wh = document.getElementById('workHours');
+  if(wh) wh.innerHTML = '📍 أهلاً بيك في شركة تنفيذ المشروعات للمقاولات<br>مواعيد العمل : ' + (settings.days||'السبت - الخميس') + ' • من ' + (settings.from||'9:00') + ' صباحاً لـ ' + (settings.to||'5:00') + ' مساءً';
 }
-
-// ===== الإضافة 3 : التشغيل والتحميل من الشيت =====
-loadSettings(); save(); loadFromSheet();
+loadSettings(); save();
 </script>
 </body>
 </html>
