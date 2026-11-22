@@ -146,7 +146,8 @@ function loadSettings(){ try{ document.getElementById('setDays').value=settings.
 function updateSettingsPreview(){ var p=document.getElementById('settingsPreview'); if(p) p.innerHTML='<div style="background:#fff;padding:10px;border-radius:10px">📍 <b>'+settings.days+'</b> من '+settings.from+' إلى '+settings.to+' | الجمعة: '+settings.friday+'<br>'+settings.address+'<br>'+(settings.note||'')+'</div>'; }
 function updatePickupText(){ var t=settings.days+' من '+settings.from+' إلى '+settings.to+' | الجمعة: '+settings.friday; var e=document.getElementById('homePickupTimes'); if(e) e.textContent=t; var r=document.getElementById('resPickup'); if(r) r.textContent=t; }
 updatePickupText();
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+</script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 var firebaseConfig = {
@@ -198,4 +199,4 @@ function cloudLoad(){
 setTimeout(cloudLoad, 500);
 </script>
 </body>
-</html>  
+</html>
