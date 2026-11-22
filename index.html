@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PECC | داشبورد العملاء</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',Tahoma}
 body{margin:0;background:#f4f1e8;color:#222}
@@ -22,6 +23,7 @@ button{border:0;border-radius:10px;padding:12px;font-weight:bold;cursor:pointer;
 .green{background:#162e4d;color:#fff;width:100%;margin-top:12px}
 .gold{background:#e67e22;color:#fff}.red{background:#c0392b;color:#fff}
 .wa{background:#25D366;color:#fff}.gray{background:#eee}.blue{background:#2980b9;color:#fff}
+.purple{background:#8e44ad;color:#fff}
 .topbar{display:flex;gap:8px;flex-wrap:wrap}.topbar button{flex:1}
 table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
 th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
@@ -45,6 +47,7 @@ th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
 .client-item{padding:10px;border:1px solid #eee;border-radius:10px;margin-top:6px;cursor:pointer;background:#fff}
 .client-item:hover{background:#e8f5e9}
 .receipt-img{max-width:100%;border:2px solid #162e4d;border-radius:12px;margin-top:8px}
+.doc-img{max-width:100%;border:2px solid #8e44ad;border-radius:10px;margin-top:8px}
 @media print{header,.no-print{display:none!important}}
 .header-logo{width:100%;height:auto;object-fit:contain;display:block;background:#fff}
 .welcome-card{position:relative;overflow:hidden}
@@ -98,6 +101,12 @@ th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
 <div class="stat"><span>المستحقات</span><b id="totalDue">0 ر.س</b></div>
 <div class="stat"><span>مدفوع تحويل</span><b id="totalTransfer">0 ر.س</b></div>
 <div class="stat"><span>مدفوع نقدي / استلام</span><b id="totalCash">0 ر.س</b></div>
+</div>
+<div class="card" style="border:2px solid #e67e22">
+<h2>📥 استيراد من إكسيل</h2>
+<p style="font-size:13px;color:#666">اختار شيت الإكسيل من جهازك وهيتسجل لوحده. لو العميل موجود بالجوال مش هيتكرر.</p>
+<div class="row"><div><button class="blue" style="width:100%" onclick="document.getElementById('importClientsFile').click()">📥 استيراد بيانات العملاء</button><input type="file" id="importClientsFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importClientsExcel(this)"><button class="gray" style="width:100%;margin-top:6px" onclick="downloadClientTemplate()">📄 تحميل نموذج شيت العملاء</button><small>الأعمدة: الاسم | الجوال | الرقم السري | النشاط | المشروع</small></div><div><button class="gold" style="width:100%" onclick="document.getElementById('importInvoicesFile').click()">📥 استيراد المستخلصات</button><input type="file" id="importInvoicesFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importInvoicesExcel(this)"><button class="gray" style="width:100%;margin-top:6px" onclick="downloadInvoiceTemplate()">📄 تحميل نموذج شيت المستخلصات</button><small>الأعمدة: الجوال | الاسم | المبلغ | الحالة | طريقة الدفع | الاستحقاق | ملاحظات</small></div></div>
+<div id="importResult" style="margin-top:10px;font-weight:bold"></div>
 </div>
 <div class="card">
 <h2>👥 تسجيل العملاء - العدد مفتوح</h2>
@@ -164,17 +173,121 @@ function addSupplier(){ var name=document.getElementById('sName').value.trim(); 
 function filterClients(){ var q=(document.getElementById('clientSearch').value||'').toLowerCase(); var box=document.getElementById('clientsList'); box.innerHTML=''; if(!q) return; suppliers.forEach(function(s,i){ if(s.name.toLowerCase().includes(q)||s.phone.includes(q)){ var d=document.createElement('div'); d.className='client-item'; d.textContent=s.name+' - '+s.phone+' - '+(s.project||''); d.onclick=function(){ selectClient(i); }; box.appendChild(d); } }); }
 function selectClient(i){ selectedClientIndex=i; var s=suppliers[i]; var box=document.getElementById('selectedClientBox'); box.classList.remove('hidden'); box.innerHTML='<b>✅ العميل المختار: '+s.name+'</b><br>📱 '+s.phone+' | 🏗️ '+(s.project||'-'); toast('تم اختيار: '+s.name); }
 function addInvoice(){ if(selectedClientIndex<0){ alert('اختار العميل الأول من البحث'); return; } var total=Number(document.getElementById('sTotal').value||0); if(!total){ alert('اكتب المبلغ'); return; } var inv={total:total,due:document.getElementById('sDue').value,method:document.getElementById('sMethod').value,status:document.getElementById('sStatus').value,desc:document.getElementById('sDesc').value,date:new Date().toISOString()}; suppliers[selectedClientIndex].invoices.push(inv); save(); toast('تم إضافة المستخلص ✅'); document.getElementById('sTotal').value=''; document.getElementById('sDesc').value=''; }
-  function renderList(){ var q=(document.getElementById('searchAll')?document.getElementById('searchAll').value||'':'').toLowerCase(); var box=document.getElementById('suppliersList'); if(!box) return; box.innerHTML=''; suppliers.forEach(function(s,i){ if(q && !s.name.toLowerCase().includes(q) && !s.phone.includes(q) && !(s.project||'').toLowerCase().includes(q)) return; var invHtml=''; (s.invoices||[]).forEach(function(inv,j){ invHtml+='<div style="background:#f9f9f9;border-radius:10px;padding:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b> - '+inv.status+' - '+(inv.method||'')+'<br><small>استحقاق: '+(inv.due||'-')+' | '+(inv.desc||'')+'</small><br><button class="red" style="margin-top:6px" onclick="delInvoice('+i+','+j+')">🗑️ حذف المستخلص</button> <button class="wa" style="margin-top:6px" onclick="sendWA('+i+','+j+')">📲 واتساب</button></div>'; }); var d=document.createElement('div'); d.className='supplier'; d.innerHTML='<b>👤 '+s.name+'</b> - 📱 '+s.phone+' - 🔑 '+getSupplierPass(s)+'<br><small>🏗️ '+(s.project||'-')+' | '+(s.note||'')+'</small><div>'+invHtml+'</div><button class="blue" style="margin-top:8px" onclick="editSupplierAdmin('+i+')">✏️ تعديل بيانات العميل</button> <button class="red" style="margin-top:8px" onclick="delSupplier('+i+')">🗑️ حذف العميل</button><div id="editAdminBox'+i+'"></div>'; box.appendChild(d); }); }
+  function renderList(){ var q=(document.getElementById('searchAll')?document.getElementById('searchAll').value||'':'').toLowerCase(); var box=document.getElementById('suppliersList'); if(!box) return; box.innerHTML=''; suppliers.forEach(function(s,i){ if(q && !s.name.toLowerCase().includes(q) && !s.phone.includes(q) && !(s.project||'').toLowerCase().includes(q)) return; var invHtml=''; (s.invoices||[]).forEach(function(inv,j){ var docImg = inv.docImg ? '<br><img src="'+inv.docImg+'" class="doc-img">' : ''; var docBtn = inv.docImg ? '<button class="wa" style="margin-top:6px" onclick="sendDocWA('+i+','+j+')">📲 ارسال المستند واتساب</button> <button class="gray" style="margin-top:6px" onclick="delDoc('+i+','+j+')">🗑️ حذف المستند</button>' : ''; invHtml+='<div style="background:#f9f9f9;border-radius:10px;padding:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b> - '+inv.status+' - '+(inv.method||'')+'<br><small>استحقاق: '+(inv.due||'-')+' | '+(inv.desc||'')+'</small>'+docImg+'<br><button class="purple" style="margin-top:6px" onclick="advanceStatus('+i+','+j+')">🔄 ترحيل الحالة</button> <button class="blue" style="margin-top:6px" onclick="document.getElementById(\'docInput'+i+'_'+j+'\').click()">📷 تصوير مستند</button><input type="file" id="docInput'+i+'_'+j+'" accept="image/*" capture="camera" style="display:none" onchange="attachDoc('+i+','+j+',this)"><br><button class="red" style="margin-top:6px" onclick="delInvoice('+i+','+j+')">🗑️ حذف المستخلص</button> <button class="wa" style="margin-top:6px" onclick="sendWA('+i+','+j+')">📲 واتساب</button><br>'+docBtn+'</div>'; }); var d=document.createElement('div'); d.className='supplier'; d.innerHTML='<b>👤 '+s.name+'</b> - 📱 '+s.phone+' - 🔑 '+getSupplierPass(s)+'<br><small>🏗️ '+(s.project||'-')+' | '+(s.note||'')+'</small><div>'+invHtml+'</div><button class="blue" style="margin-top:8px" onclick="editSupplierAdmin('+i+')">✏️ تعديل بيانات العميل</button> <button class="red" style="margin-top:8px" onclick="delSupplier('+i+')">🗑️ حذف العميل</button><div id="editAdminBox'+i+'"></div>'; box.appendChild(d); }); }
+// ===== ترحيل الحالة + تصوير مستند =====
+function advanceStatus(si,ii){
+  var inv=suppliers[si].invoices[ii];
+  if(inv.status==='قيد المراجعة') inv.status='تم الاعتماد';
+  else if(inv.status==='تم الاعتماد') inv.status='تم الدفع';
+  else if(inv.status==='تم الدفع'){ toast('المستخلص وصل للمرحلة الأخيرة ✅'); return; }
+  else inv.status='تم الاعتماد';
+  save(); toast('تم ترحيل الحالة إلى: '+inv.status+' ✅');
+}
+function attachDoc(si,ii,input){
+  var f=input.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var c=document.createElement('canvas'); var max=1000; var w=img.width, h=img.height;
+      if(w>max){ h=h*max/w; w=max; }
+      c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+      suppliers[si].invoices[ii].docImg=c.toDataURL('image/jpeg',0.8);
+      save(); toast('تم حفظ صورة المستند ✅');
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(f); input.value='';
+}
+function delDoc(si,ii){ if(!confirm('حذف صورة المستند؟')) return; delete suppliers[si].invoices[ii].docImg; save(); }
+function sendDocWA(si,ii){
+  var s=suppliers[si]; var inv=s.invoices[ii];
+  if(!inv.docImg){ alert('صور المستند الأول'); return; }
+  var a=document.createElement('a'); a.href=inv.docImg; a.download='mustakhlas-'+(ii+1)+'-'+s.name+'.jpg'; a.click();
+  var msg='أهلاً '+s.name+'، ده مستند مستخلصك: '+inv.total+' ر.س - الحالة: '+inv.status+' - شركة تنفيذ المشروعات للمقاولات - هتلاقي صورة المستند مرفقة';
+  var phone=s.phone.replace(/^0/,'966');
+  toast('نزلت صورة المستند - ارفقها في الواتساب');
+  setTimeout(function(){ window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank'); },600);
+}
 function editSupplierAdmin(i){ var s=suppliers[i]; var box=document.getElementById('editAdminBox'+i); box.innerHTML='<div style="background:#fff3cd;padding:10px;border-radius:10px;margin-top:8px"><label>الاسم</label><input id="eaName'+i+'" value="'+s.name+'"><label>رقم الجوال</label><input id="eaPhone'+i+'" value="'+s.phone+'"><label>الرقم السري</label><input id="eaPass'+i+'" value="'+getSupplierPass(s)+'"><label>المشروع</label><input id="eaProj'+i+'" value="'+(s.project||'')+'"><button class="green" onclick="saveSupplierAdmin('+i+')">💾 حفظ التعديل</button></div>'; }
 function saveSupplierAdmin(i){ var s=suppliers[i]; s.name=document.getElementById('eaName'+i).value.trim()||s.name; s.phone=document.getElementById('eaPhone'+i).value.trim()||s.phone; var np=document.getElementById('eaPass'+i).value.trim(); if(np){ s.pass=np; s.id5=np; } s.project=document.getElementById('eaProj'+i).value; save(); toast('تم تعديل بيانات العميل ✅'); }
 function delSupplier(i){ if(!confirm('متأكد تحذف العميل ده؟')) return; suppliers.splice(i,1); selectedClientIndex=-1; save(); }
 function delInvoice(si,ii){ if(!confirm('متأكد تحذف المستخلص ده؟')) return; suppliers[si].invoices.splice(ii,1); save(); }
 function sendWA(si,ii){ var s=suppliers[si]; var inv=s.invoices[ii]; var msg='أهلاً '+s.name+'، مستخلصك: '+inv.total+' ر.س - الحالة: '+inv.status+' - شركة تنفيذ المشروعات للمقاولات'; var phone=s.phone.replace(/^0/,'966'); window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank'); }
-function searchSupplier(){ var phone=document.getElementById('qPhone').value.trim(); var pass=document.getElementById('qPass').value.trim(); var res=document.getElementById('searchResult'); if(!phone||!pass){ res.innerHTML='<p style="color:red">اكتب الجوال والرقم السري</p>'; return; } var foundIndex=-1; var found=null; suppliers.forEach(function(s,i){ if(s.phone===phone && getSupplierPass(s)===pass){ found=s; foundIndex=i; } }); if(!found){ res.innerHTML='<p style="color:red">❌ مفيش بيانات مطابقة، راجع الجوال والرقم السري</p>'; return; } currentSupplierIndex=foundIndex; var html='<div class="client-box"><h3>أهلاً '+found.name+'</h3>'; var total=0; (found.invoices||[]).forEach(function(inv,j){ total+=Number(inv.total||0); html+='<div style="background:#fff;padding:10px;border-radius:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b><br>الحالة: '+inv.status+' | الدفع: '+(inv.method||'')+'<br>الاستحقاق: '+(inv.due||'-')+'<br>'+(inv.desc||'')+'</div>'; }); html+='<div class="balance">الإجمالي: '+total+' ر.س</div><p>📍 مواعيد الاستلام: <b id="resPickup"></b></p><button class="blue" style="width:100%;margin-top:10px" onclick="showEditSupplier()">✏️ تعديل بياناتي</button><div id="editSupplierBox"></div></div>'; res.innerHTML=html; updatePickupText(); }
+function searchSupplier(){ var phone=document.getElementById('qPhone').value.trim(); var pass=document.getElementById('qPass').value.trim(); var res=document.getElementById('searchResult'); if(!phone||!pass){ res.innerHTML='<p style="color:red">اكتب الجوال والرقم السري</p>'; return; } var foundIndex=-1; var found=null; suppliers.forEach(function(s,i){ if(s.phone===phone && getSupplierPass(s)===pass){ found=s; foundIndex=i; } }); if(!found){ res.innerHTML='<p style="color:red">❌ مفيش بيانات مطابقة، راجع الجوال والرقم السري</p>'; return; } currentSupplierIndex=foundIndex; var html='<div class="client-box"><h3>أهلاً '+found.name+'</h3>'; var total=0; (found.invoices||[]).forEach(function(inv,j){ total+=Number(inv.total||0); var dimg=inv.docImg?'<br><img src="'+inv.docImg+'" class="doc-img">':''; html+='<div style="background:#fff;padding:10px;border-radius:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b><br>الحالة: '+inv.status+' | الدفع: '+(inv.method||'')+'<br>الاستحقاق: '+(inv.due||'-')+'<br>'+(inv.desc||'')+dimg+'</div>'; }); html+='<div class="balance">الإجمالي: '+total+' ر.س</div><p>📍 مواعيد الاستلام: <b id="resPickup"></b></p><button class="blue" style="width:100%;margin-top:10px" onclick="showEditSupplier()">✏️ تعديل بياناتي</button><div id="editSupplierBox"></div></div>'; res.innerHTML=html; updatePickupText(); }
 function showEditSupplier(){ if(currentSupplierIndex<0) return; var s=suppliers[currentSupplierIndex]; var box=document.getElementById('editSupplierBox'); box.innerHTML='<div style="background:#fff;padding:12px;border-radius:10px;margin-top:10px"><label>الاسم</label><input id="eName" value="'+s.name+'"><label>رقم الجوال</label><input id="ePhone" value="'+s.phone+'"><label>الرقم السري</label><input id="ePass" value="'+getSupplierPass(s)+'"><label>النشاط / الشركة</label><input id="eNote" value="'+(s.note||'')+'"><label>المشروع</label><input id="eProj" value="'+(s.project||'')+'"><button class="green" onclick="saveEditSupplier()">💾 حفظ تعديل بياناتي</button></div>'; }
 function saveEditSupplier(){ if(currentSupplierIndex<0) return; var s=suppliers[currentSupplierIndex]; s.name=document.getElementById('eName').value.trim()||s.name; s.phone=document.getElementById('ePhone').value.trim()||s.phone; var np=document.getElementById('ePass').value.trim(); if(np){ s.pass=np; s.id5=np; } s.note=document.getElementById('eNote').value; s.project=document.getElementById('eProj').value; save(); toast('تم تعديل بياناتك ✅'); searchSupplier(); }
 function checkDue(){ var box=document.getElementById('dueAlert'); var list=document.getElementById('dueList'); if(!box) return; var today=new Date().toISOString().slice(0,10); var dues=[]; suppliers.forEach(function(s){ (s.invoices||[]).forEach(function(inv){ if(inv.due && inv.due<=today && inv.status!=='تم الدفع'){ dues.push(s.name+' - '+inv.total+' ر.س - استحقاق '+inv.due); } }); }); if(dues.length){ box.style.display='block'; list.innerHTML=dues.map(function(x){return '<div>⚠️ '+x+'</div>'}).join(''); } else { box.style.display='none'; } }
 function exportExcel(){ var rows=[['الاسم','الجوال','المشروع','المبلغ','الحالة','الاستحقاق']]; suppliers.forEach(function(s){ (s.invoices||[]).forEach(function(inv){ rows.push([s.name,s.phone,s.project||'',inv.total,inv.status,inv.due||'']); }); }); var csv=rows.map(function(r){return r.join(',')}).join('\n'); var blob=new Blob(['\ufeff'+csv],{type:'text/csv'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='pecc.csv'; a.click(); }
+// ===== استيراد إكسيل =====
+function readExcelFile(file, cb){
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = new Uint8Array(e.target.result);
+      var wb = XLSX.read(data, {type:'array'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      cb(rows);
+    }catch(err){ alert('الملف مش إكسيل صحيح'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function cleanPhone(v){ return String(v||'').trim().replace(/\s/g,''); }
+function fmtDate(v){
+  if(!v) return '';
+  if(typeof v==='number'){ var d=XLSX.SSF.parse_date_code(v); return d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0'); }
+  var s=String(v).trim();
+  if(s.indexOf('/')>-1){ var p=s.split('/'); if(p[2] && p[2].length===2) p[2]='20'+p[2]; return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'); }
+  return s.slice(0,10);
+}
+function downloadClientTemplate(){
+  var ws=XLSX.utils.aoa_to_sheet([['الاسم','الجوال','الرقم السري','النشاط','المشروع'],['أحمد محمد','0501234567','1234','مورد تمور','مشروع المدينة']]);
+  var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'العملاء'); XLSX.writeFile(wb,'نموذج_العملاء.xlsx');
+}
+function downloadInvoiceTemplate(){
+  var ws=XLSX.utils.aoa_to_sheet([['الجوال','الاسم','المبلغ','الحالة','طريقة الدفع','الاستحقاق','ملاحظات'],['0501234567','أحمد محمد','50000','قيد المراجعة','تحويل','2026-12-01','مستخلص 1']]);
+  var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'المستخلصات'); XLSX.writeFile(wb,'نموذج_المستخلصات.xlsx');
+}
+function importClientsExcel(input){
+  var file=input.files[0]; if(!file) return;
+  readExcelFile(file, function(rows){
+    var added=0, skipped=0;
+    for(var i=1;i<rows.length;i++){
+      var r=rows[i]; if(!r[0] && !r[1]) continue;
+      var name=String(r[0]||'').trim(), phone=cleanPhone(r[1]), pass=String(r[2]||'1234').trim(), note=String(r[3]||''), proj=String(r[4]||'');
+      if(!name||!phone){ skipped++; continue; }
+      var exists=suppliers.find(function(x){ return cleanPhone(x.phone)===phone; });
+      if(exists){ exists.name=name; exists.pass=pass; exists.id5=pass; exists.note=note; exists.project=proj; skipped++; }
+      else { suppliers.push({name:name,phone:phone,pass:pass,id5:pass,note:note,project:proj,invoices:[],created:new Date().toISOString()}); added++; }
+    }
+    save(); document.getElementById('importResult').innerHTML='✅ تم استيراد العملاء: أضيف '+added+' | اتحدث '+skipped;
+    toast('تم استيراد العملاء ✅'); input.value='';
+  });
+}
+function importInvoicesExcel(input){
+  var file=input.files[0]; if(!file) return;
+  readExcelFile(file, function(rows){
+    var added=0, created=0;
+    for(var i=1;i<rows.length;i++){
+      var r=rows[i]; if(!r[0] && !r[1] && !r[2]) continue;
+      var phone=cleanPhone(r[0]), name=String(r[1]||'').trim(), total=Number(String(r[2]||'').replace(/[^0-9.]/g,''))||0;
+      if(!total) continue;
+      var status=String(r[3]||'قيد المراجعة').trim(), method=String(r[4]||'تحويل').trim(), due=fmtDate(r[5]), desc=String(r[6]||'');
+      var sup=suppliers.find(function(x){ return phone && cleanPhone(x.phone)===phone; });
+      if(!sup && name) sup=suppliers.find(function(x){ return x.name.trim()===name; });
+      if(!sup){
+        if(!phone && !name) continue;
+        sup={name:name||phone,phone:phone||'',pass:'1234',id5:'1234',note:'',project:'',invoices:[],created:new Date().toISOString()};
+        suppliers.push(sup); created++;
+      }
+      sup.invoices.push({total:total,due:due,method:method.indexOf('نقد')>-1?'نقدي':'تحويل',status:status,desc:desc,date:new Date().toISOString()});
+      added++;
+    }
+    save(); document.getElementById('importResult').innerHTML='✅ تم استيراد المستخلصات: '+added+' مستخلص | عملاء جدد: '+created;
+    toast('تم استيراد المستخلصات ✅'); input.value='';
+  });
+}
 function saveSettings(){ settings={days:document.getElementById('setDays').value,from:document.getElementById('setFrom').value,to:document.getElementById('setTo').value,friday:document.getElementById('setFriday').value,address:document.getElementById('setAddress').value,note:document.getElementById('setNote').value}; localStorage.setItem('arbah_settings',JSON.stringify(settings)); updateSettingsPreview(); updatePickupText(); toast('تم حفظ مواعيد الاستلام ✅'); try{cloudSave();}catch(e){} }
 function loadSettings(){ try{ document.getElementById('setDays').value=settings.days; document.getElementById('setFrom').value=settings.from; document.getElementById('setTo').value=settings.to; document.getElementById('setFriday').value=settings.friday; document.getElementById('setAddress').value=settings.address; document.getElementById('setNote').value=settings.note||''; }catch(e){} updateSettingsPreview(); updatePickupText(); }
 function updateSettingsPreview(){ var p=document.getElementById('settingsPreview'); if(p) p.innerHTML='<div style="background:#fff;padding:10px;border-radius:10px">📍 <b>'+settings.days+'</b> من '+settings.from+' إلى '+settings.to+' | الجمعة: '+settings.friday+'<br>'+settings.address+'<br>'+(settings.note||'')+'</div>'; }
