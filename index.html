@@ -69,7 +69,14 @@ th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
 </div>
 <div class="card hidden" id="adminLogin" style="max-width:420px;margin:auto;text-align:center"><h2>🔐 دخول الإدارة</h2><label>كلمة السر</label><input id="adminPass" type="password" placeholder="اكتب كلمة السر"><button class="green" onclick="checkAdmin()">دخول</button>
 <button class="gray" style="width:100%;margin-top:8px" onclick="forgotAdmin()">نسيت كلمة المرور؟</button>
-<div id="forgotBox" class="hidden" style="background:#fff3cd;border:1px solid #e67e22;border-radius:10px;padding:12px;margin-top:10px;font-size:14px;text-align:right"></div>
+<div id="forgotBox" class="hidden" style="background:#fff3cd;border:1px solid #e67e22;border-radius:10px;padding:12px;margin-top:10px;font-size:14px;text-align:right">
+<label style="text-align:right">الإيميل المسجل</label>
+<input id="forgotEmail" placeholder="اكتب الإيميل">
+<label style="text-align:right">رقم الجوال المسجل</label>
+<input id="forgotPhone" placeholder="اكتب رقم الجوال">
+<button class="green" onclick="verifyForgot()">عرض كلمة المرور</button>
+<div id="forgotResult" style="margin-top:10px"></div>
+</div>
 <button class="gray" style="width:100%;margin-top:8px" onclick="backHome()">⬅ رجوع</button></div>
 </div>
 <header><img src="logo.png" class="header-logo"></header>
@@ -137,7 +144,17 @@ function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.st
 function showSupplierLogin(){ document.getElementById('homeScreen').classList.remove('hidden'); document.getElementById('supplierLogin').classList.remove('hidden'); document.getElementById('adminLogin').classList.add('hidden'); window.scrollTo(0,0); }
 function showAdminLogin(){ document.getElementById('supplierLogin').classList.add('hidden'); document.getElementById('adminLogin').classList.remove('hidden'); }
 function backHome(){ document.getElementById('supplierLogin').classList.add('hidden'); document.getElementById('adminLogin').classList.add('hidden'); }
-function forgotAdmin(){ var b=document.getElementById('forgotBox'); b.classList.remove('hidden'); b.innerHTML='📧 الإيميل: <b>Sea.life98@yahoo.com</b><br>📱 الجوال: <b>0509137787</b><br><br>🔑 آخر كلمة مرور: <b>'+ADMIN_PASS+'</b>'; }
+function forgotAdmin(){ var b=document.getElementById('forgotBox'); b.classList.remove('hidden'); document.getElementById('forgotResult').innerHTML=''; }
+function verifyForgot(){
+  var em=document.getElementById('forgotEmail').value.trim();
+  var ph=document.getElementById('forgotPhone').value.trim();
+  var r=document.getElementById('forgotResult');
+  if(em==='Sea.life98@yahoo.com' && ph==='0509137787'){
+    r.innerHTML='✅ التحقق صح<br>🔑 كلمة المرور الحالية: <b>'+ADMIN_PASS+'</b>';
+  } else {
+    r.innerHTML='<span style="color:red">❌ الإيميل أو رقم الجوال غلط</span>';
+  }
+}
 function changeAdminPass(){ var oldP=document.getElementById('oldAdminPass').value; var newP=document.getElementById('newAdminPass').value.trim(); if(oldP!==ADMIN_PASS){ alert('كلمة المرور الحالية غلط'); return; } if(!newP){ alert('اكتب الجديدة'); return; } ADMIN_PASS=newP; localStorage.setItem('pecc_admin_pass',newP); document.getElementById('oldAdminPass').value=''; document.getElementById('newAdminPass').value=''; toast('تم تغيير كلمة المرور ✅'); try{cloudSave();}catch(e){} }
 function checkAdmin(){ var p=document.getElementById('adminPass').value; if(p===ADMIN_PASS){ document.getElementById('homeScreen').classList.add('hidden'); document.getElementById('adminScreen').classList.remove('hidden'); loadSettings(); renderList(); updateStats(); filterClients(); checkDue(); updateSettingsPreview(); } else { alert('كلمة السر غلط'); } }
 function logout(){ document.getElementById('adminScreen').classList.add('hidden'); document.getElementById('homeScreen').classList.remove('hidden'); backHome(); }
@@ -147,7 +164,7 @@ function addSupplier(){ var name=document.getElementById('sName').value.trim(); 
 function filterClients(){ var q=(document.getElementById('clientSearch').value||'').toLowerCase(); var box=document.getElementById('clientsList'); box.innerHTML=''; if(!q) return; suppliers.forEach(function(s,i){ if(s.name.toLowerCase().includes(q)||s.phone.includes(q)){ var d=document.createElement('div'); d.className='client-item'; d.textContent=s.name+' - '+s.phone+' - '+(s.project||''); d.onclick=function(){ selectClient(i); }; box.appendChild(d); } }); }
 function selectClient(i){ selectedClientIndex=i; var s=suppliers[i]; var box=document.getElementById('selectedClientBox'); box.classList.remove('hidden'); box.innerHTML='<b>✅ العميل المختار: '+s.name+'</b><br>📱 '+s.phone+' | 🏗️ '+(s.project||'-'); toast('تم اختيار: '+s.name); }
 function addInvoice(){ if(selectedClientIndex<0){ alert('اختار العميل الأول من البحث'); return; } var total=Number(document.getElementById('sTotal').value||0); if(!total){ alert('اكتب المبلغ'); return; } var inv={total:total,due:document.getElementById('sDue').value,method:document.getElementById('sMethod').value,status:document.getElementById('sStatus').value,desc:document.getElementById('sDesc').value,date:new Date().toISOString()}; suppliers[selectedClientIndex].invoices.push(inv); save(); toast('تم إضافة المستخلص ✅'); document.getElementById('sTotal').value=''; document.getElementById('sDesc').value=''; }
-function renderList(){ var q=(document.getElementById('searchAll')?document.getElementById('searchAll').value||'':'').toLowerCase(); var box=document.getElementById('suppliersList'); if(!box) return; box.innerHTML=''; suppliers.forEach(function(s,i){ if(q && !s.name.toLowerCase().includes(q) && !s.phone.includes(q) && !(s.project||'').toLowerCase().includes(q)) return; var invHtml=''; (s.invoices||[]).forEach(function(inv,j){ invHtml+='<div style="background:#f9f9f9;border-radius:10px;padding:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b> - '+inv.status+' - '+(inv.method||'')+'<br><small>استحقاق: '+(inv.due||'-')+' | '+(inv.desc||'')+'</small><br><button class="red" style="margin-top:6px" onclick="delInvoice('+i+','+j+')">🗑️ حذف المستخلص</button> <button class="wa" style="margin-top:6px" onclick="sendWA('+i+','+j+')">📲 واتساب</button></div>'; }); var d=document.createElement('div'); d.className='supplier'; d.innerHTML='<b>👤 '+s.name+'</b> - 📱 '+s.phone+' - 🔑 '+getSupplierPass(s)+'<br><small>🏗️ '+(s.project||'-')+' | '+(s.note||'')+'</small><div>'+invHtml+'</div><button class="blue" style="margin-top:8px" onclick="editSupplierAdmin('+i+')">✏️ تعديل بيانات العميل</button> <button class="red" style="margin-top:8px" onclick="delSupplier('+i+')">🗑️ حذف العميل</button><div id="editAdminBox'+i+'"></div>'; box.appendChild(d); }); }
+  function renderList(){ var q=(document.getElementById('searchAll')?document.getElementById('searchAll').value||'':'').toLowerCase(); var box=document.getElementById('suppliersList'); if(!box) return; box.innerHTML=''; suppliers.forEach(function(s,i){ if(q && !s.name.toLowerCase().includes(q) && !s.phone.includes(q) && !(s.project||'').toLowerCase().includes(q)) return; var invHtml=''; (s.invoices||[]).forEach(function(inv,j){ invHtml+='<div style="background:#f9f9f9;border-radius:10px;padding:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b> - '+inv.status+' - '+(inv.method||'')+'<br><small>استحقاق: '+(inv.due||'-')+' | '+(inv.desc||'')+'</small><br><button class="red" style="margin-top:6px" onclick="delInvoice('+i+','+j+')">🗑️ حذف المستخلص</button> <button class="wa" style="margin-top:6px" onclick="sendWA('+i+','+j+')">📲 واتساب</button></div>'; }); var d=document.createElement('div'); d.className='supplier'; d.innerHTML='<b>👤 '+s.name+'</b> - 📱 '+s.phone+' - 🔑 '+getSupplierPass(s)+'<br><small>🏗️ '+(s.project||'-')+' | '+(s.note||'')+'</small><div>'+invHtml+'</div><button class="blue" style="margin-top:8px" onclick="editSupplierAdmin('+i+')">✏️ تعديل بيانات العميل</button> <button class="red" style="margin-top:8px" onclick="delSupplier('+i+')">🗑️ حذف العميل</button><div id="editAdminBox'+i+'"></div>'; box.appendChild(d); }); }
 function editSupplierAdmin(i){ var s=suppliers[i]; var box=document.getElementById('editAdminBox'+i); box.innerHTML='<div style="background:#fff3cd;padding:10px;border-radius:10px;margin-top:8px"><label>الاسم</label><input id="eaName'+i+'" value="'+s.name+'"><label>رقم الجوال</label><input id="eaPhone'+i+'" value="'+s.phone+'"><label>الرقم السري</label><input id="eaPass'+i+'" value="'+getSupplierPass(s)+'"><label>المشروع</label><input id="eaProj'+i+'" value="'+(s.project||'')+'"><button class="green" onclick="saveSupplierAdmin('+i+')">💾 حفظ التعديل</button></div>'; }
 function saveSupplierAdmin(i){ var s=suppliers[i]; s.name=document.getElementById('eaName'+i).value.trim()||s.name; s.phone=document.getElementById('eaPhone'+i).value.trim()||s.phone; var np=document.getElementById('eaPass'+i).value.trim(); if(np){ s.pass=np; s.id5=np; } s.project=document.getElementById('eaProj'+i).value; save(); toast('تم تعديل بيانات العميل ✅'); }
 function delSupplier(i){ if(!confirm('متأكد تحذف العميل ده؟')) return; suppliers.splice(i,1); selectedClientIndex=-1; save(); }
@@ -164,7 +181,7 @@ function updateSettingsPreview(){ var p=document.getElementById('settingsPreview
 function updatePickupText(){ var t=settings.days+' من '+settings.from+' إلى '+settings.to+' | الجمعة: '+settings.friday; var e=document.getElementById('homePickupTimes'); if(e) e.textContent=t; var r=document.getElementById('resPickup'); if(r) r.textContent=t; }
 updatePickupText();
 </script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 var firebaseConfig = {
@@ -185,7 +202,6 @@ function cloudSave(){
   if(!db) return;
   try{
     var j = JSON.stringify(suppliers);
-    if(j===cloudLastJson && !cloudSaving) { /* still save admin pass */ }
     cloudLastJson = j;
     cloudSaving = true;
     db.collection('pecc').doc('main').set({suppliers: suppliers, settings: settings, adminPass: ADMIN_PASS, updatedAt: new Date().toISOString()}).then(function(){ cloudSaving=false; }).catch(function(e){ cloudSaving=false; });
