@@ -54,7 +54,6 @@ th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
 </head>
 <body>
 <div id="cloudBadge" style="background:#e8f5e9;border:2px solid #162e4d;text-align:center;padding:10px;font-weight:bold;border-radius:0 0 12px 12px">☁️ جاري الاتصال بالسحابة...</div>
-<header><img src="logo.png" class="header-logo"></header>
 <div id="toast" class="toast"></div>
 <div class="wrap" id="homeScreen">
 <div class="card welcome-card" style="text-align:center"><img src="logo.png" class="welcome-bg"><h2>أهلاً بيك في شركة تنفيذ المشروعات للمقاولات</h2>
@@ -62,15 +61,18 @@ th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
 <div class="topbar"><button class="green" onclick="showSupplierLogin()">👤 أنا مورد - تتبع مستخلصي</button><button class="gold" onclick="showAdminLogin()">🔐 الإدارة</button></div></div>
 <div class="card hidden" id="supplierLogin">
 <h2>🔍 تتبع المستخلص - دخول آمن</h2>
-<p style="font-size:13px;color:#666">ادخل رقم الجوال + آخر 5 أرقام من الهوية عشان يفتح مستخلصك</p>
-<div><label>الاسم</label><input id="qName" placeholder=""></div>
-<div class="row"><div><label>رقم الجوال *</label><input id="qPhone" placeholder="05xxxxxxxx"></div><div><label>آخر 5 أرقام من الهوية *</label><input id="qId5" placeholder="مثال: 12345" maxlength="5" inputmode="numeric"></div></div>
+<p style="font-size:13px;color:#666">ادخل رقم الجوال + الرقم السري عشان يفتح مستخلصك</p>
+<div class="row"><div><label>رقم الجوال *</label><input id="qPhone" placeholder="05xxxxxxxx"></div><div><label>الرقم السري *</label><input id="qPass" type="password" placeholder="الرقم السري"></div></div>
 <button class="green" onclick="searchSupplier()">عرض مستخلصي</button>
 <div id="searchResult"></div>
 <button class="gray" style="width:100%;margin-top:10px" onclick="backHome()">⬅ رجوع</button>
 </div>
-<div class="card hidden" id="adminLogin" style="max-width:420px;margin:auto;text-align:center"><h2>🔐 دخول الإدارة</h2><label>كلمة السر</label><input id="adminPass" type="password" placeholder="اكتب كلمة السر"><button class="green" onclick="checkAdmin()">دخول</button><button class="gray" style="width:100%;margin-top:8px" onclick="backHome()">⬅ رجوع</button></div>
+<div class="card hidden" id="adminLogin" style="max-width:420px;margin:auto;text-align:center"><h2>🔐 دخول الإدارة</h2><label>كلمة السر</label><input id="adminPass" type="password" placeholder="اكتب كلمة السر"><button class="green" onclick="checkAdmin()">دخول</button>
+<button class="gray" style="width:100%;margin-top:8px" onclick="forgotAdmin()">نسيت كلمة المرور؟</button>
+<div id="forgotBox" class="hidden" style="background:#fff3cd;border:1px solid #e67e22;border-radius:10px;padding:12px;margin-top:10px;font-size:14px;text-align:right"></div>
+<button class="gray" style="width:100%;margin-top:8px" onclick="backHome()">⬅ رجوع</button></div>
 </div>
+<header><img src="logo.png" class="header-logo"></header>
 <div class="wrap hidden" id="adminScreen">
 <div class="topbar no-print"><button class="gray" onclick="logout()">🚪 خروج</button><button class="gold" onclick="exportExcel()">📥 إكسيل</button><button class="gold" onclick="window.print()">🖨️ طباعة</button></div>
 <label style="margin-top:12px;display:block;background:#e8f5e9;padding:12px;border-radius:10px"><input type="checkbox" id="autoWA" checked style="width:auto"> ✅ ابعت واتساب في المرحلة الأخيرة بس</label>
@@ -93,8 +95,8 @@ th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
 <div class="card">
 <h2>👥 تسجيل العملاء - العدد مفتوح</h2>
 <p style="font-size:13px;color:#666">سجل العملاء هنا مرة واحدة، وبعد كده هتختار منهم بالاسم أو الجوال، والعدد مفتوح براحتك.</p>
-<div><label>الاسم الثلاثي *</label><input id="sName" placeholder="مثال: أحمد محمد علي - لازم 3 أسماء"></div>
-<div class="row"><div><label>رقم الجوال *</label><input id="sPhone" placeholder="05xxxxxxxx"></div><div><label>آخر 5 أرقام من الهوية *</label><input id="sId5" placeholder="12345" maxlength="5" inputmode="numeric"></div></div>
+<div><label>الاسم *</label><input id="sName" placeholder="مثال: أحمد محمد"></div>
+<div class="row"><div><label>رقم الجوال *</label><input id="sPhone" placeholder="05xxxxxxxx"></div><div><label>الرقم السري *</label><input id="sPass" placeholder="الرقم السري" inputmode="numeric"></div></div>
 <div class="row"><div><label>النشاط / الشركة</label><input id="sNote" placeholder="مثال: مورد تمور"></div><div><label>المشروع</label><input id="sProject" placeholder="مثال: مشروع المدينة"></div></div>
 <button class="green" onclick="addSupplier()">حفظ العميل ✅</button>
 <div id="clientsCount" style="margin-top:8px;font-weight:bold;color:#162e4d"></div>
@@ -114,6 +116,13 @@ th,td{padding:9px;border-bottom:1px solid #eee;text-align:right}
 <input id="searchAll" oninput="renderList()" placeholder="🔍 ابحث بالاسم او الجوال او المشروع...">
 <div id="suppliersList"></div>
 </div>
+<div class="card" style="border:2px solid #162e4d">
+<h2>🔐 تغيير كلمة مرور الإدارة</h2>
+<label>كلمة المرور الحالية</label><input id="oldAdminPass" type="password" placeholder="الحالية">
+<label>كلمة المرور الجديدة</label><input id="newAdminPass" type="password" placeholder="الجديدة">
+<button class="green" onclick="changeAdminPass()">💾 تغيير كلمة المرور</button>
+<p style="font-size:13px;color:#666">هتتغير على كل الأجهزة بعد الحفظ.</p>
+</div>
 </div>
 <script>
 var suppliers = [];
@@ -121,24 +130,32 @@ try{ suppliers = JSON.parse(localStorage.getItem('arbah_v11')||'[]'); }catch(e){
 var settings = {days:'السبت - الخميس',from:'09:00',to:'17:00',friday:'مغلق - إجازة',address:'مقر شركة تنفيذ المشروعات للمقاولات - جدة',note:''};
 try{ var s = JSON.parse(localStorage.getItem('arbah_settings')||'null'); if(s) settings=s; }catch(e){}
 var selectedClientIndex = -1;
-var ADMIN_PASS = '1234';
+var currentSupplierIndex = -1;
+var ADMIN_PASS = localStorage.getItem('pecc_admin_pass') || '1234';
+function getSupplierPass(s){ return s.pass || s.id5 || ''; }
 function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; setTimeout(function(){t.style.display='none'},3000); }
 function showSupplierLogin(){ document.getElementById('homeScreen').classList.remove('hidden'); document.getElementById('supplierLogin').classList.remove('hidden'); document.getElementById('adminLogin').classList.add('hidden'); window.scrollTo(0,0); }
 function showAdminLogin(){ document.getElementById('supplierLogin').classList.add('hidden'); document.getElementById('adminLogin').classList.remove('hidden'); }
 function backHome(){ document.getElementById('supplierLogin').classList.add('hidden'); document.getElementById('adminLogin').classList.add('hidden'); }
+function forgotAdmin(){ var b=document.getElementById('forgotBox'); b.classList.remove('hidden'); b.innerHTML='📧 الإيميل: <b>Sea.life98@yahoo.com</b><br>📱 الجوال: <b>0509137787</b><br><br>🔑 آخر كلمة مرور: <b>'+ADMIN_PASS+'</b>'; }
+function changeAdminPass(){ var oldP=document.getElementById('oldAdminPass').value; var newP=document.getElementById('newAdminPass').value.trim(); if(oldP!==ADMIN_PASS){ alert('كلمة المرور الحالية غلط'); return; } if(!newP){ alert('اكتب الجديدة'); return; } ADMIN_PASS=newP; localStorage.setItem('pecc_admin_pass',newP); document.getElementById('oldAdminPass').value=''; document.getElementById('newAdminPass').value=''; toast('تم تغيير كلمة المرور ✅'); try{cloudSave();}catch(e){} }
 function checkAdmin(){ var p=document.getElementById('adminPass').value; if(p===ADMIN_PASS){ document.getElementById('homeScreen').classList.add('hidden'); document.getElementById('adminScreen').classList.remove('hidden'); loadSettings(); renderList(); updateStats(); filterClients(); checkDue(); updateSettingsPreview(); } else { alert('كلمة السر غلط'); } }
 function logout(){ document.getElementById('adminScreen').classList.add('hidden'); document.getElementById('homeScreen').classList.remove('hidden'); backHome(); }
 function save(){ localStorage.setItem('arbah_v11',JSON.stringify(suppliers)); renderList(); updateStats(); filterClients(); checkDue(); updateSettingsPreview(); try{cloudSave();}catch(e){} }
 function updateStats(){ var total=0, tr=0, ca=0; suppliers.forEach(function(s){ (s.invoices||[]).forEach(function(inv){ total+=Number(inv.total||0); if(inv.method==='تحويل') tr+=Number(inv.total||0); else ca+=Number(inv.total||0); }); }); document.getElementById('totalSuppliers').textContent=suppliers.length; document.getElementById('totalDue').textContent=total+' ر.س'; document.getElementById('totalTransfer').textContent=tr+' ر.س'; document.getElementById('totalCash').textContent=ca+' ر.س'; document.getElementById('clientsCount').textContent='عدد العملاء المسجلين: '+suppliers.length; }
-function addSupplier(){ var name=document.getElementById('sName').value.trim(); var phone=document.getElementById('sPhone').value.trim(); var id5=document.getElementById('sId5').value.trim(); if(!name||!phone||!id5){ alert('اكمل الاسم والجوال وآخر 5 ارقام'); return; } if(name.split(' ').filter(Boolean).length<3){ alert('الاسم لازم يكون ثلاثي'); return; } var sup={name:name,phone:phone,id5:id5,note:document.getElementById('sNote').value,project:document.getElementById('sProject').value,invoices:[],created:new Date().toISOString()}; suppliers.push(sup); save(); toast('تم حفظ العميل ✅'); document.getElementById('sName').value=''; document.getElementById('sPhone').value=''; document.getElementById('sId5').value=''; document.getElementById('sNote').value=''; document.getElementById('sProject').value=''; }
+function addSupplier(){ var name=document.getElementById('sName').value.trim(); var phone=document.getElementById('sPhone').value.trim(); var pass=document.getElementById('sPass').value.trim(); if(!name||!phone||!pass){ alert('اكمل الاسم والجوال والرقم السري'); return; } var sup={name:name,phone:phone,pass:pass,id5:pass,note:document.getElementById('sNote').value,project:document.getElementById('sProject').value,invoices:[],created:new Date().toISOString()}; suppliers.push(sup); save(); toast('تم حفظ العميل ✅'); document.getElementById('sName').value=''; document.getElementById('sPhone').value=''; document.getElementById('sPass').value=''; document.getElementById('sNote').value=''; document.getElementById('sProject').value=''; }
 function filterClients(){ var q=(document.getElementById('clientSearch').value||'').toLowerCase(); var box=document.getElementById('clientsList'); box.innerHTML=''; if(!q) return; suppliers.forEach(function(s,i){ if(s.name.toLowerCase().includes(q)||s.phone.includes(q)){ var d=document.createElement('div'); d.className='client-item'; d.textContent=s.name+' - '+s.phone+' - '+(s.project||''); d.onclick=function(){ selectClient(i); }; box.appendChild(d); } }); }
 function selectClient(i){ selectedClientIndex=i; var s=suppliers[i]; var box=document.getElementById('selectedClientBox'); box.classList.remove('hidden'); box.innerHTML='<b>✅ العميل المختار: '+s.name+'</b><br>📱 '+s.phone+' | 🏗️ '+(s.project||'-'); toast('تم اختيار: '+s.name); }
 function addInvoice(){ if(selectedClientIndex<0){ alert('اختار العميل الأول من البحث'); return; } var total=Number(document.getElementById('sTotal').value||0); if(!total){ alert('اكتب المبلغ'); return; } var inv={total:total,due:document.getElementById('sDue').value,method:document.getElementById('sMethod').value,status:document.getElementById('sStatus').value,desc:document.getElementById('sDesc').value,date:new Date().toISOString()}; suppliers[selectedClientIndex].invoices.push(inv); save(); toast('تم إضافة المستخلص ✅'); document.getElementById('sTotal').value=''; document.getElementById('sDesc').value=''; }
-function renderList(){ var q=(document.getElementById('searchAll')?document.getElementById('searchAll').value||'':'').toLowerCase(); var box=document.getElementById('suppliersList'); if(!box) return; box.innerHTML=''; suppliers.forEach(function(s,i){ if(q && !s.name.toLowerCase().includes(q) && !s.phone.includes(q) && !(s.project||'').toLowerCase().includes(q)) return; var invHtml=''; (s.invoices||[]).forEach(function(inv,j){ invHtml+='<div style="background:#f9f9f9;border-radius:10px;padding:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b> - '+inv.status+' - '+(inv.method||'')+'<br><small>استحقاق: '+(inv.due||'-')+' | '+(inv.desc||'')+'</small><br><button class="red" style="margin-top:6px" onclick="delInvoice('+i+','+j+')">🗑️ حذف المستخلص</button> <button class="wa" style="margin-top:6px" onclick="sendWA('+i+','+j+')">📲 واتساب</button></div>'; }); var d=document.createElement('div'); d.className='supplier'; d.innerHTML='<b>👤 '+s.name+'</b> - 📱 '+s.phone+' - 🪪 ...'+s.id5+'<br><small>🏗️ '+(s.project||'-')+' | '+(s.note||'')+'</small><div>'+invHtml+'</div><button class="red" style="margin-top:8px" onclick="delSupplier('+i+')">🗑️ حذف العميل</button>'; box.appendChild(d); }); }
+function renderList(){ var q=(document.getElementById('searchAll')?document.getElementById('searchAll').value||'':'').toLowerCase(); var box=document.getElementById('suppliersList'); if(!box) return; box.innerHTML=''; suppliers.forEach(function(s,i){ if(q && !s.name.toLowerCase().includes(q) && !s.phone.includes(q) && !(s.project||'').toLowerCase().includes(q)) return; var invHtml=''; (s.invoices||[]).forEach(function(inv,j){ invHtml+='<div style="background:#f9f9f9;border-radius:10px;padding:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b> - '+inv.status+' - '+(inv.method||'')+'<br><small>استحقاق: '+(inv.due||'-')+' | '+(inv.desc||'')+'</small><br><button class="red" style="margin-top:6px" onclick="delInvoice('+i+','+j+')">🗑️ حذف المستخلص</button> <button class="wa" style="margin-top:6px" onclick="sendWA('+i+','+j+')">📲 واتساب</button></div>'; }); var d=document.createElement('div'); d.className='supplier'; d.innerHTML='<b>👤 '+s.name+'</b> - 📱 '+s.phone+' - 🔑 '+getSupplierPass(s)+'<br><small>🏗️ '+(s.project||'-')+' | '+(s.note||'')+'</small><div>'+invHtml+'</div><button class="blue" style="margin-top:8px" onclick="editSupplierAdmin('+i+')">✏️ تعديل بيانات العميل</button> <button class="red" style="margin-top:8px" onclick="delSupplier('+i+')">🗑️ حذف العميل</button><div id="editAdminBox'+i+'"></div>'; box.appendChild(d); }); }
+function editSupplierAdmin(i){ var s=suppliers[i]; var box=document.getElementById('editAdminBox'+i); box.innerHTML='<div style="background:#fff3cd;padding:10px;border-radius:10px;margin-top:8px"><label>الاسم</label><input id="eaName'+i+'" value="'+s.name+'"><label>رقم الجوال</label><input id="eaPhone'+i+'" value="'+s.phone+'"><label>الرقم السري</label><input id="eaPass'+i+'" value="'+getSupplierPass(s)+'"><label>المشروع</label><input id="eaProj'+i+'" value="'+(s.project||'')+'"><button class="green" onclick="saveSupplierAdmin('+i+')">💾 حفظ التعديل</button></div>'; }
+function saveSupplierAdmin(i){ var s=suppliers[i]; s.name=document.getElementById('eaName'+i).value.trim()||s.name; s.phone=document.getElementById('eaPhone'+i).value.trim()||s.phone; var np=document.getElementById('eaPass'+i).value.trim(); if(np){ s.pass=np; s.id5=np; } s.project=document.getElementById('eaProj'+i).value; save(); toast('تم تعديل بيانات العميل ✅'); }
 function delSupplier(i){ if(!confirm('متأكد تحذف العميل ده؟')) return; suppliers.splice(i,1); selectedClientIndex=-1; save(); }
 function delInvoice(si,ii){ if(!confirm('متأكد تحذف المستخلص ده؟')) return; suppliers[si].invoices.splice(ii,1); save(); }
 function sendWA(si,ii){ var s=suppliers[si]; var inv=s.invoices[ii]; var msg='أهلاً '+s.name+'، مستخلصك: '+inv.total+' ر.س - الحالة: '+inv.status+' - شركة تنفيذ المشروعات للمقاولات'; var phone=s.phone.replace(/^0/,'966'); window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank'); }
-function searchSupplier(){ var name=document.getElementById('qName').value.trim(); var phone=document.getElementById('qPhone').value.trim(); var id5=document.getElementById('qId5').value.trim(); var res=document.getElementById('searchResult'); if(!phone||!id5){ res.innerHTML='<p style="color:red">اكتب الجوال وآخر 5 ارقام</p>'; return; } var found=suppliers.find(function(s){ return s.phone===phone && s.id5===id5; }); if(!found){ res.innerHTML='<p style="color:red">❌ مفيش بيانات مطابقة، راجع الجوال والهوية</p>'; return; } var html='<div class="client-box"><h3>أهلاً '+found.name+'</h3>'; var total=0; (found.invoices||[]).forEach(function(inv,j){ total+=Number(inv.total||0); html+='<div style="background:#fff;padding:10px;border-radius:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b><br>الحالة: '+inv.status+' | الدفع: '+(inv.method||'')+'<br>الاستحقاق: '+(inv.due||'-')+'<br>'+(inv.desc||'')+'</div>'; }); html+='<div class="balance">الإجمالي: '+total+' ر.س</div><p>📍 مواعيد الاستلام: <b id="resPickup"></b></p></div>'; res.innerHTML=html; updatePickupText(); }
+function searchSupplier(){ var phone=document.getElementById('qPhone').value.trim(); var pass=document.getElementById('qPass').value.trim(); var res=document.getElementById('searchResult'); if(!phone||!pass){ res.innerHTML='<p style="color:red">اكتب الجوال والرقم السري</p>'; return; } var foundIndex=-1; var found=null; suppliers.forEach(function(s,i){ if(s.phone===phone && getSupplierPass(s)===pass){ found=s; foundIndex=i; } }); if(!found){ res.innerHTML='<p style="color:red">❌ مفيش بيانات مطابقة، راجع الجوال والرقم السري</p>'; return; } currentSupplierIndex=foundIndex; var html='<div class="client-box"><h3>أهلاً '+found.name+'</h3>'; var total=0; (found.invoices||[]).forEach(function(inv,j){ total+=Number(inv.total||0); html+='<div style="background:#fff;padding:10px;border-radius:10px;margin-top:8px"><b>مستخلص '+(j+1)+': '+inv.total+' ر.س</b><br>الحالة: '+inv.status+' | الدفع: '+(inv.method||'')+'<br>الاستحقاق: '+(inv.due||'-')+'<br>'+(inv.desc||'')+'</div>'; }); html+='<div class="balance">الإجمالي: '+total+' ر.س</div><p>📍 مواعيد الاستلام: <b id="resPickup"></b></p><button class="blue" style="width:100%;margin-top:10px" onclick="showEditSupplier()">✏️ تعديل بياناتي</button><div id="editSupplierBox"></div></div>'; res.innerHTML=html; updatePickupText(); }
+function showEditSupplier(){ if(currentSupplierIndex<0) return; var s=suppliers[currentSupplierIndex]; var box=document.getElementById('editSupplierBox'); box.innerHTML='<div style="background:#fff;padding:12px;border-radius:10px;margin-top:10px"><label>الاسم</label><input id="eName" value="'+s.name+'"><label>رقم الجوال</label><input id="ePhone" value="'+s.phone+'"><label>الرقم السري</label><input id="ePass" value="'+getSupplierPass(s)+'"><label>النشاط / الشركة</label><input id="eNote" value="'+(s.note||'')+'"><label>المشروع</label><input id="eProj" value="'+(s.project||'')+'"><button class="green" onclick="saveEditSupplier()">💾 حفظ تعديل بياناتي</button></div>'; }
+function saveEditSupplier(){ if(currentSupplierIndex<0) return; var s=suppliers[currentSupplierIndex]; s.name=document.getElementById('eName').value.trim()||s.name; s.phone=document.getElementById('ePhone').value.trim()||s.phone; var np=document.getElementById('ePass').value.trim(); if(np){ s.pass=np; s.id5=np; } s.note=document.getElementById('eNote').value; s.project=document.getElementById('eProj').value; save(); toast('تم تعديل بياناتك ✅'); searchSupplier(); }
 function checkDue(){ var box=document.getElementById('dueAlert'); var list=document.getElementById('dueList'); if(!box) return; var today=new Date().toISOString().slice(0,10); var dues=[]; suppliers.forEach(function(s){ (s.invoices||[]).forEach(function(inv){ if(inv.due && inv.due<=today && inv.status!=='تم الدفع'){ dues.push(s.name+' - '+inv.total+' ر.س - استحقاق '+inv.due); } }); }); if(dues.length){ box.style.display='block'; list.innerHTML=dues.map(function(x){return '<div>⚠️ '+x+'</div>'}).join(''); } else { box.style.display='none'; } }
 function exportExcel(){ var rows=[['الاسم','الجوال','المشروع','المبلغ','الحالة','الاستحقاق']]; suppliers.forEach(function(s){ (s.invoices||[]).forEach(function(inv){ rows.push([s.name,s.phone,s.project||'',inv.total,inv.status,inv.due||'']); }); }); var csv=rows.map(function(r){return r.join(',')}).join('\n'); var blob=new Blob(['\ufeff'+csv],{type:'text/csv'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='pecc.csv'; a.click(); }
 function saveSettings(){ settings={days:document.getElementById('setDays').value,from:document.getElementById('setFrom').value,to:document.getElementById('setTo').value,friday:document.getElementById('setFriday').value,address:document.getElementById('setAddress').value,note:document.getElementById('setNote').value}; localStorage.setItem('arbah_settings',JSON.stringify(settings)); updateSettingsPreview(); updatePickupText(); toast('تم حفظ مواعيد الاستلام ✅'); try{cloudSave();}catch(e){} }
@@ -168,10 +185,10 @@ function cloudSave(){
   if(!db) return;
   try{
     var j = JSON.stringify(suppliers);
-    if(j===cloudLastJson) return;
+    if(j===cloudLastJson && !cloudSaving) { /* still save admin pass */ }
     cloudLastJson = j;
     cloudSaving = true;
-    db.collection('pecc').doc('main').set({suppliers: suppliers, settings: settings, updatedAt: new Date().toISOString()}).then(function(){ cloudSaving=false; }).catch(function(e){ cloudSaving=false; });
+    db.collection('pecc').doc('main').set({suppliers: suppliers, settings: settings, adminPass: ADMIN_PASS, updatedAt: new Date().toISOString()}).then(function(){ cloudSaving=false; }).catch(function(e){ cloudSaving=false; });
   }catch(e){}
 }
 function cloudLoad(){
@@ -179,6 +196,7 @@ function cloudLoad(){
   db.collection('pecc').doc('main').onSnapshot(function(doc){
     if(!doc.exists) { cloudSave(); return; }
     var d = doc.data();
+    if(d && d.adminPass){ ADMIN_PASS=d.adminPass; try{ localStorage.setItem('pecc_admin_pass', ADMIN_PASS); }catch(e){} }
     if(!d || !d.suppliers) return;
     var j = JSON.stringify(d.suppliers);
     if(j===cloudLastJson) return;
